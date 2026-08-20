@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@import "@fontsource/aileron/300.css";
+@import "@fontsource/aileron/400.css";
+@import "@fontsource/aileron/700.css";
+@import "@fontsource/aileron/800.css";
+
+:root {
+  /* TQD design tokens — see tqd-hiring-portal-build-plan.md and the plan
+     that superseded it. No mauve/rose; sage + olive is the real palette. */
+  --bone: #efede6; /* page field */
+  --ink: #1c1c1a; /* type, primary buttons */
+  --body: #3a3a35; /* body copy */
+  --muted: #8b897e; /* eyebrows, meta */
+  --faint: #a6a398; /* placeholders, empty states */
+  --surface: #f5f4ee; /* inputs, cards on board */
+  --sage-pale: #e3e8ce; /* callout blocks, notes */
+  --sage-deep: #2f3524; /* type on sage-pale */
+  --olive: #55612c; /* links, eyebrow on sage */
+  --olive-light: #6f7c3c; /* focus rings, tags, active star */
+  --border: #c9c6ba; /* input borders */
+  --rule: #d7d4c8; /* section rules */
+  --rule-soft: #dcd9cd; /* card borders */
+  --rule-faint: #e1ded2; /* field rows in drawer */
+  --board: #e9e7dd; /* kanban column background */
+  --works-bg: #e5e2d8; /* selected-works image block background */
+  --scrim: rgba(28, 28, 26, 0.32);
+
+  --font-sans: "Aileron", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@theme inline {
+  --color-bone: var(--bone);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-surface: var(--surface);
+  --color-sage-pale: var(--sage-pale);
+  --color-sage-deep: var(--sage-deep);
+  --color-olive: var(--olive);
+  --color-olive-light: var(--olive-light);
+  --color-border: var(--border);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-rule-faint: var(--rule-faint);
+  --color-board: var(--board);
+  --color-works-bg: var(--works-bg);
+  --font-sans: var(--font-sans);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bone);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--olive);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+::placeholder {
+  color: var(--faint);
+}
+
+/* Respect reduced motion globally; GSAP/Lenis providers on the public
+   route group also gate on this via gsap.matchMedia(). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

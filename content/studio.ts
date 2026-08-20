@@ -23,19 +23,22 @@ export const studio = {
   ],
   selectedWorks: [
     {
+      title: "Poetry Night",
+      year: "2025–26",
+      body: "A passive house retrofit of an Iranian Yakhchal designed to break gender barriers and bring communities together. Designed for the 2026 Buildner Re:Form Architecture Competition.",
+      image: "/works/Poetry-Night-2.png",
+    },
+    {
       title: "Vancouver Special 2.0",
       year: "2024–26",
       body: "A retrofit strategy for the city's most common house type, entered in the Solar Decathlon Design Challenge and now in design development.",
+      image: "/works/vancouver-special-2.0.png",
     },
     {
-      title: "Net-Zero Academic Space",
-      year: "2022–24",
-      body: "A proposal for the first student-designed and student-built net-zero teaching space on campus.",
-    },
-    {
-      title: "Solar Decathlon 2021",
-      year: "2021",
-      body: "Multifamily division entry. Undefeated record extended; the envelope study became our standard reference.",
+      title: "Third Space Commons",
+      year: "2021-2023",
+      body: "A design-build project on UBC’s Vancouver campus designed and constructed on the principles of carbon minimalism, system minimalism, flexibility & adaptability, resilience, and UBC as a living lab.",
+      image: "/works/third-space-commons.avif",
     },
   ],
   howWeReview:

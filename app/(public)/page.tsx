@@ -3,6 +3,12 @@ import { studio } from "@/content/studio";
 import { WorkImage } from "@/components/work-image";
 import { ScrollReveal } from "@/lib/motion/scroll-reveal";
 import { ApplySection } from "./apply-section";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function HomePage() {
   return (
@@ -82,7 +88,7 @@ export default function HomePage() {
           {studio.selectedWorks.map((p, i) => (
             <ScrollReveal key={p.title} delay={i * 0.08}>
               <div>
-                <WorkImage label={`${p.title} render`} />
+                <WorkImage label={`${p.title} render`} src={p.image} />
                 <div className="flex justify-between gap-6 mt-4.5">
                   <div>
                     <div className="text-[22px] font-bold tracking-[-0.015em]">{p.title}</div>
@@ -98,6 +104,43 @@ export default function HomePage() {
             </ScrollReveal>
           ))}
         </div>
+      </div>
+
+      {/* FAQ */}
+      <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[1440px] mx-auto">
+        <ScrollReveal>
+          <div className="text-[clamp(28px,3.2vw,48px)] leading-none font-extrabold tracking-[-0.03em] mb-7">
+            FAQ
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delay={0.08}>
+          <Accordion type="multiple" defaultValue="item-1" collapsible className="max-w-[62ch]">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>Will there be an info session?</AccordionTrigger>
+              <AccordionContent>
+                Yes. Maybe. I don't know.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+              <AccordionTrigger>Are late submissions accepted?</AccordionTrigger>
+              <AccordionContent>
+                Email ubcthirdquadrantdesign@gmail.com for any issues.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3">
+              <AccordionTrigger>Is it accessible?</AccordionTrigger>
+              <AccordionContent>
+                Yes. It adheres to the WAI-ARIA design pattern.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-4">
+              <AccordionTrigger>Is it accessible?</AccordionTrigger>
+              <AccordionContent>
+                Yes. It adheres to the WAI-ARIA design pattern.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </ScrollReveal>
       </div>
 
       {/* Application */}

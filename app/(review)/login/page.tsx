@@ -26,7 +26,7 @@ export default async function LoginPage({
     <div className="min-h-screen flex items-center justify-center bg-bone px-6">
       <div className="w-full max-w-sm text-center">
         <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-muted mb-3">
-          Review board
+          Super Secret Board
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight mb-8">
           Third Quadrant Design

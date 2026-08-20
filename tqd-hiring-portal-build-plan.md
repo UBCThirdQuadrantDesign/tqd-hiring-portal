@@ -495,7 +495,7 @@ GSAP's premium plugins (SplitText, Flip, DrawSVG, ScrollTrigger) moved to free u
 | Production | Vercel production + Supabase production project |
 
 - Migrations live in `supabase/migrations`, committed, applied via CI.
-- Environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SECRET_KEY`, `SENTRY_DSN`.
+- Environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_...`), `SUPABASE_SECRET_KEY` (`sb_secret_...`), `TURNSTILE_SECRET_KEY`, `SENTRY_DSN`.
 - Vercel Analytics on the public side only.
 - `robots.txt` disallowing `/review` — belt and braces alongside the auth gate.
 
@@ -505,7 +505,7 @@ GSAP's premium plugins (SplitText, Flip, DrawSVG, ScrollTrigger) moved to free u
 
 | Phase | Scope | Exit criteria |
 |---|---|---|
-| **1** | Repo scaffold, Tailwind tokens, type scale, `<ImageSlot>`, Supabase schema + RLS | RLS policies tested with an anon key — confirmed no read access to `applications` |
+| **1** | Repo scaffold, Tailwind tokens, type scale, `<ImageSlot>`, Supabase schema + RLS | RLS policies tested with the publishable key — confirmed no read access to `applications` |
 | **2** | Landing page, all three sections, **static, zero motion** | Composition matches the reference at every breakpoint |
 | **3** | `content/job.ts` → form renderer → Zod → submission pipeline → signed-URL uploads | A 40MB PDF submits end to end |
 | **4** | Google OAuth, reviewer allowlist, `proxy.ts` gate | Non-allowlisted Google account is rejected at both proxy and RLS |

@@ -1,18 +1,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { STAGES } from "@/lib/board-types";
 import type { ApplicationStage } from "@/lib/schema";
 import { application as applicationContent } from "@/content/application";
-import { setStage as setStageAction, toggleStar as toggleStarAction, addNote as addNoteAction } from "@/app/(review)/review/actions";
+import { addNote as addNoteAction } from "@/app/(review)/review/actions";
+import { useBoardStore } from "@/app/(review)/review/board-store";
+import { drawerSkeletonJustShown, useLockBodyScroll } from "@/components/drawer-shell";
+
+/** Must stay in sync with --drawer-duration in globals.css. */
+const DRAWER_DURATION_MS = 220;
 
 type Attachment = {
   id: string;
   kind: "resume" | "portfolio";
   filename: string;
-  signedUrl: string | null;
 };
+
+/** Signed on click, not on panel open — see app/api/reviewer/attachment/[id]. */
+function attachmentHref(id: string) {
+  return `/api/reviewer/attachment/${id}`;
+}
 
 type Note = {
   id: string;
@@ -50,30 +59,62 @@ export function ApplicationDrawer({
   mode: "modal" | "page";
 }) {
   const router = useRouter();
-  const [stage, setStage] = useState(application.stage);
-  const [starred, setStarred] = useState(application.starred);
+  const { getCard, starCard, setCardStage } = useBoardStore();
   const [localNotes, setLocalNotes] = useState(notes);
   const [draft, setDraft] = useState("");
+  const [closing, setClosing] = useState(false);
+  // The loading skeleton already slid the panel in — don't replay it.
+  const [skipEntrance] = useState(() => mode === "modal" && drawerSkeletonJustShown());
   const [, startTransition] = useTransition();
 
-  const close = () => {
-    if (mode === "modal") router.back();
-    else router.push("/review");
-  };
+  // The board owns stage/starred so both views move together. Falling back to
+  // the server props keeps this working if the card somehow isn't in the store.
+  const card = getCard(application.id);
+  const stage = card?.stage ?? application.stage;
+  const starred = card?.starred ?? application.starred;
+
+  // Play the exit animation before unmounting; navigating straight away is
+  // what made closing feel like a jump cut.
+  const navigatedRef = useRef(false);
+  const leave = useCallback(() => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+    router.back();
+  }, [router]);
+
+  const close = useCallback(() => {
+    if (mode !== "modal") {
+      router.push("/review");
+      return;
+    }
+    setClosing(true);
+  }, [mode, router]);
+
+  // animationend is the primary trigger; this is the backstop for the cases
+  // where it never fires (background tab, reduced motion collapsing it).
+  useEffect(() => {
+    if (!closing) return;
+    const t = setTimeout(leave, DRAWER_DURATION_MS + 60);
+    return () => clearTimeout(t);
+  }, [closing, leave]);
+
+  useEffect(() => {
+    if (mode !== "modal") return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mode, close]);
+
+  useLockBodyScroll(mode === "modal");
 
   const changeStage = (next: ApplicationStage) => {
-    setStage(next);
-    startTransition(() => {
-      setStageAction(application.id, next).catch(() => {});
-    });
+    setCardStage(application.id, next);
   };
 
   const toggleStar = () => {
-    const next = !starred;
-    setStarred(next);
-    startTransition(() => {
-      toggleStarAction(application.id, next).catch(() => {});
-    });
+    starCard(application.id, !starred);
   };
 
   const submitNote = () => {
@@ -105,7 +146,9 @@ export function ApplicationDrawer({
 
   const wrapperClass =
     mode === "modal"
-      ? "w-[560px] max-w-[92vw] h-full overflow-y-auto bg-bone border-l border-border"
+      ? `w-[560px] max-w-[92vw] h-full overflow-y-auto bg-bone border-l border-border ${
+          closing ? "drawer-panel-out" : skipEntrance ? "" : "drawer-panel-in"
+        }`
       : "max-w-[780px] mx-auto";
 
   const content = (
@@ -183,8 +226,8 @@ export function ApplicationDrawer({
           <div className="grid grid-cols-[120px_1fr] gap-5 py-3.5 border-b border-rule-faint">
             <div className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted">Résumé</div>
             <div className="text-sm">
-              {resume?.signedUrl ? (
-                <a href={resume.signedUrl} target="_blank" rel="noreferrer">
+              {resume ? (
+                <a href={attachmentHref(resume.id)} target="_blank" rel="noreferrer">
                   {resume.filename}
                 </a>
               ) : (
@@ -195,8 +238,8 @@ export function ApplicationDrawer({
           <div className="grid grid-cols-[120px_1fr] gap-5 py-3.5 border-b border-rule-faint">
             <div className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted">Portfolio</div>
             <div className="text-sm">
-              {portfolio?.signedUrl ? (
-                <a href={portfolio.signedUrl} target="_blank" rel="noreferrer">
+              {portfolio ? (
+                <a href={attachmentHref(portfolio.id)} target="_blank" rel="noreferrer">
                   {portfolio.filename}
                 </a>
               ) : (
@@ -284,7 +327,16 @@ export function ApplicationDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end" style={{ background: "rgba(28,28,26,0.32)" }}>
+    <div
+      className={`fixed inset-0 z-[60] flex justify-end ${
+        closing ? "drawer-scrim-out" : skipEntrance ? "" : "drawer-scrim-in"
+      }`}
+      style={{ background: "rgba(28,28,26,0.32)" }}
+      onAnimationEnd={(e) => {
+        // Only the scrim's own animation — not any bubbling from inside.
+        if (closing && e.target === e.currentTarget) leave();
+      }}
+    >
       <div className="flex-1" onClick={close} />
       {content}
     </div>

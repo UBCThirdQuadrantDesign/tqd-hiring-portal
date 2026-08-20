@@ -26,7 +26,6 @@ export const YEARS = [
   "3rd year",
   "4th year",
   "5th year +",
-  "Graduate",
 ] as const;
 
 export type QuestionField =
@@ -96,7 +95,7 @@ export const application = {
       id: "email",
       type: "email",
       label: "Email",
-      placeholder: "you@student.ubc.ca",
+      placeholder: "you@anything.ca",
       required: true,
       column: true,
     },
@@ -104,7 +103,7 @@ export const application = {
       id: "faculty",
       type: "text",
       label: "Faculty",
-      placeholder: "e.g. Applied Science",
+      placeholder: "e.g. Civil Engineering, 1st Year Eng",
       required: true,
       column: true,
     },
@@ -163,8 +162,8 @@ export const application = {
       id: "portfolio",
       type: "file",
       label: "Portfolio",
-      accept: ["application/pdf"],
-      maxSize: 50_000_000,
+      accept: ["application/pdf", "image/png"],
+      maxSize: 10_000_000,
       required: true,
       column: false,
     },

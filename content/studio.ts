@@ -41,7 +41,6 @@ export const studio = {
   howWeReview:
     "We read every submission, then invite a shortlist to a thirty‑minute conversation in the studio. Offers go out after interviews close. Portfolios matter more than grades; a sketchbook page counts.",
   footer: {
-    address: "6363 Biological Sciences Road, Vancouver",
     cycle: "2026–27",
   },
 } as const;

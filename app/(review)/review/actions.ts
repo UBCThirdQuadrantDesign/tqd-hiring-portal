@@ -2,11 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { noteSchema, applicationStages, type ApplicationStage } from "@/lib/schema";
-import { APPLICATIONS_BUCKET, SIGNED_URL_TTL_SECONDS } from "@/lib/storage";
 
 /** All actions run as the signed-in reviewer — RLS (is_reviewer()) is the real gate, not this file. */
+
+/* setStage/reorder/toggleStar deliberately skip revalidatePath: /review is
+   dynamic (cookie-backed Supabase client), so nothing is cached that needs
+   invalidating, and the client already applies these optimistically via
+   board-store.tsx. Revalidating only forced an RSC refetch of the board and
+   the open applicant panel on every click. Note mutations still revalidate —
+   their data does come from the panel's server component. */
 
 export async function setStage(applicationId: string, stage: ApplicationStage) {
   if (!applicationStages.includes(stage)) throw new Error("Invalid stage.");
@@ -16,7 +21,6 @@ export async function setStage(applicationId: string, stage: ApplicationStage) {
     .update({ stage })
     .eq("id", applicationId);
   if (error) throw error;
-  revalidatePath("/review");
 }
 
 export async function reorder(applicationId: string, stage: ApplicationStage, position: number) {
@@ -26,7 +30,6 @@ export async function reorder(applicationId: string, stage: ApplicationStage, po
     .update({ stage, position })
     .eq("id", applicationId);
   if (error) throw error;
-  revalidatePath("/review");
 }
 
 export async function toggleStar(applicationId: string, starred: boolean) {
@@ -36,7 +39,6 @@ export async function toggleStar(applicationId: string, starred: boolean) {
     .update({ starred })
     .eq("id", applicationId);
   if (error) throw error;
-  revalidatePath("/review");
 }
 
 export async function addNote(applicationId: string, body: string) {
@@ -93,20 +95,14 @@ export async function getApplicationDetail(applicationId: string) {
 
   if (appError || !applicationRow) throw appError ?? new Error("Not found.");
 
-  // The reviewer's own session has no Storage RLS policy — signed URLs are
-  // minted with the service-role key. The DB reads above already went
-  // through is_reviewer(), so by this point the caller is confirmed.
-  const adminStorage = createAdminClient().storage.from(APPLICATIONS_BUCKET);
-  const signedAttachments = await Promise.all(
-    (attachments ?? []).map(async (a) => {
-      const { data } = await adminStorage.createSignedUrl(a.storage_path, SIGNED_URL_TTL_SECONDS);
-      return { ...a, signedUrl: data?.signedUrl ?? null };
-    })
-  );
-
+  // Attachments come back unsigned on purpose. Minting signed URLs here
+  // meant a second serial round trip to Storage on every panel open (the
+  // paths aren't known until the query above returns), and the 60s TTL
+  // started ticking while the reviewer was still reading. The panel links
+  // to /api/reviewer/attachment/[id], which signs on click instead.
   return {
     application: applicationRow,
-    attachments: signedAttachments,
+    attachments: attachments ?? [],
     notes: notesWithAuthor,
   };
 }

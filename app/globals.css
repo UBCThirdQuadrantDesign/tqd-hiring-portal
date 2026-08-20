@@ -22,6 +22,7 @@
   --rule-soft: #dcd9cd; /* card borders */
   --rule-faint: #e1ded2; /* field rows in drawer */
   --board: #e9e7dd; /* kanban column background */
+  --board-archived: #dfdcd0; /* archived column — a shade under --board */
   --works-bg: #e5e2d8; /* selected-works image block background */
   --scrim: rgba(28, 28, 26, 0.32);
 
@@ -44,6 +45,7 @@
   --color-rule-soft: var(--rule-soft);
   --color-rule-faint: var(--rule-faint);
   --color-board: var(--board);
+  --color-board-archived: var(--board-archived);
   --color-works-bg: var(--works-bg);
   --font-sans: var(--font-sans);
 }
@@ -100,5 +102,74 @@ textarea {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Applicant panel (review board) — the intercepted @drawer slot mounts and
+   unmounts on navigation, so enter/exit are keyframes rather than transitions.
+   Duration must stay in sync with DRAWER_DURATION_MS in
+   components/application-drawer.tsx. */
+:root {
+  --drawer-duration: 220ms;
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-slide-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes drawer-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawer-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.drawer-panel-in {
+  animation: drawer-slide-in var(--drawer-duration) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.drawer-panel-out {
+  animation: drawer-slide-out var(--drawer-duration) cubic-bezier(0.55, 0, 1, 0.45) both;
+}
+
+.drawer-scrim-in {
+  animation: drawer-fade-in var(--drawer-duration) ease-out both;
+}
+
+.drawer-scrim-out {
+  animation: drawer-fade-out var(--drawer-duration) ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-panel-in,
+  .drawer-panel-out,
+  .drawer-scrim-in,
+  .drawer-scrim-out {
+    animation-duration: 1ms;
   }
 }

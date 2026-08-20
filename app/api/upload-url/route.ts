@@ -42,6 +42,10 @@ export async function POST(request: Request) {
     .createSignedUploadUrl(path);
 
   if (error || !data) {
+    // Storage errors here are almost always configuration, not user input —
+    // most often a missing `applications` bucket. Log the real cause so it
+    // is not swallowed by the generic message the applicant sees.
+    console.error("[upload-url] could not sign upload for", path, error);
     return NextResponse.json({ error: "Could not create upload URL." }, { status: 500 });
   }
 

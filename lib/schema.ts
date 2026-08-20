@@ -23,13 +23,13 @@ export const applicationFormSchema = z.object({
     .string()
     .trim()
     .min(1, "Tell us why you'd like to join.")
-    .refine((v) => wordCount(v) <= 250, "Keep it to 250 words or fewer."),
-  hours_per_week: z.string().trim().min(1, "Let us know your availability."),
+    .refine((v) => wordCount(v) <= 250, "Please keep it to 250 words or fewer."),
+  hours_per_week: z.string().trim().min(1, "Please let us know your availability."),
   other_commitments: z
     .string()
     .trim()
     .max(2000)
-    .refine((v) => wordCount(v) <= 150, "Keep it to 150 words or fewer.")
+    .refine((v) => wordCount(v) <= 150, "Please keep it to 150 words or fewer.")
     .optional()
     .or(z.literal("")),
   // Uploads are handled out-of-band via signed URLs (see lib/upload.ts);

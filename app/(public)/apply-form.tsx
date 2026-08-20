@@ -107,7 +107,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
       </div>
 
       {state.error && (
-        <p className="text-sm text-red-700 bg-surface border border-border px-4 py-3" role="alert">
+        <p className="text-sm text-red-800 bg-red-100 border border-red-200 px-4 py-3" role="alert">
           {state.error}
         </p>
       )}
@@ -118,7 +118,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           <input
             name="full_name"
             type="text"
-            placeholder="Type here"
+            placeholder="First Last"
             value={fields.full_name}
             onChange={field("full_name")}
             className={inputClass}
@@ -137,7 +137,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
             <input
               name="email"
               type="email"
-              placeholder="you@student.ubc.ca"
+              placeholder="you@anything.ca"
               value={fields.email}
               onChange={field("email")}
               className={inputClass}
@@ -154,7 +154,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
             <input
               name="faculty"
               type="text"
-              placeholder="e.g. Applied Science"
+              placeholder="e.g. Civil Engineering, SALA"
               value={fields.faculty}
               onChange={field("faculty")}
               className={inputClass}
@@ -224,7 +224,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
         <textarea
           name="other_commitments"
           rows={4}
-          placeholder="Clubs, jobs, sports, whatever else fills the week."
+          placeholder="Clubs, jobs, sports, or anything that interests you!"
           value={fields.other_commitments}
           onChange={field("other_commitments")}
           className={inputClass}
@@ -237,8 +237,10 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           <FileDropField
             label={resumeQ.label}
             accept={resumeQ.accept}
+            maxSize={resumeQ.maxSize}
             state={resume.state}
             onFile={resume.upload}
+            onRemove={resume.reset}
             error={state.fieldErrors?.resume_path}
           />
         )}
@@ -246,8 +248,10 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           <FileDropField
             label={portfolioQ.label}
             accept={portfolioQ.accept}
+            maxSize={portfolioQ.maxSize}
             state={portfolio.state}
             onFile={portfolio.upload}
+            onRemove={portfolio.reset}
             error={state.fieldErrors?.portfolio_path}
           />
         )}
@@ -255,10 +259,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
         <input type="hidden" name="portfolio_path" value={portfolio.state.path ?? ""} />
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 pt-10">
-        <div className="text-[13px] text-muted">
-          Your answers are visible only to the review team.
-        </div>
+      <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center justify-between gap-8 pt-10">
         <button
           type="submit"
           disabled={!canSubmit}

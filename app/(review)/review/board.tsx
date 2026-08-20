@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -21,73 +21,32 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { createClient } from "@/lib/supabase/client";
 import { STAGES } from "@/lib/board-types";
 import type { ApplicationStage } from "@/lib/schema";
-import { reorder as reorderAction, toggleStar as toggleStarAction } from "./actions";
+import { useBoardStore, type BoardCard } from "./board-store";
 
-type BoardCard = {
-  id: string;
-  full_name: string;
-  year: string;
-  subteam: string;
-  stage: ApplicationStage;
-  starred: boolean;
-  position: number;
-};
-
-export function Board({ initialApplications }: { initialApplications: BoardCard[] }) {
+export function Board() {
   const router = useRouter();
-  const [cards, setCards] = useState<BoardCard[]>(initialApplications);
+  const { cards, starCard, moveCard } = useBoardStore();
   const [starredOnly, setStarredOnly] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
-
-  // Realtime: two reviewers triaging at once is normal, not an edge case.
-  useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel("applications-board")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "applications" },
-        (payload) => {
-          setCards((prev) => {
-            if (payload.eventType === "DELETE") {
-              return prev.filter((c) => c.id !== (payload.old as BoardCard).id);
-            }
-            const row = payload.new as BoardCard;
-            const exists = prev.some((c) => c.id === row.id);
-            if (exists) return prev.map((c) => (c.id === row.id ? { ...c, ...row } : c));
-            return [...prev, row];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const visibleStages = showArchived ? STAGES : STAGES.filter((s) => s.key !== "archived");
   const filtered = starredOnly ? cards.filter((c) => c.starred) : cards;
 
   const columns = useMemo(
     () =>
-      visibleStages.map((s) => ({
+      STAGES.map((s) => ({
         ...s,
         items: filtered
           .filter((c) => c.stage === s.key)
           .sort((a, b) => a.position - b.position),
       })),
-    [visibleStages, filtered]
+    [filtered]
   );
 
   const activeCard = cards.find((c) => c.id === activeId) ?? null;
@@ -126,25 +85,16 @@ export function Board({ initialApplications }: { initialApplications: BoardCard[
         ? after.position - 1
         : 1;
 
-    setCards((prev) =>
-      prev.map((c) =>
-        c.id === active.id ? { ...c, stage: targetStage, position: newPosition } : c
-      )
-    );
-
-    startTransition(() => {
-      reorderAction(String(active.id), targetStage, newPosition).catch(() => {
-        // Realtime subscription will reconcile on the next server broadcast.
-      });
-    });
+    moveCard(String(active.id), targetStage, newPosition);
   };
 
-  const toggleStar = (id: string, next: boolean) => {
-    setCards((prev) => prev.map((c) => (c.id === id ? { ...c, starred: next } : c)));
-    startTransition(() => {
-      toggleStarAction(id, next).catch(() => {});
-    });
-  };
+  // Warm the intercepted /review/a/[id] payload while the pointer is still
+  // travelling to the click — otherwise the panel can't open until four
+  // queries and two signed-URL mints come back.
+  const prefetchCard = useCallback(
+    (id: string) => router.prefetch(`/review/a/${id}`),
+    [router]
+  );
 
   const totalCount = cards.length;
   const starredCount = cards.filter((c) => c.starred).length;
@@ -154,26 +104,16 @@ export function Board({ initialApplications }: { initialApplications: BoardCard[
       <div className="flex flex-wrap items-end justify-between gap-6 pb-6 border-b border-rule">
         <div>
           <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-muted mb-3">
-            Review board — 2026–27 cohort
+            Review board
           </div>
-          <div className="text-[38px] leading-none font-extrabold tracking-[-0.03em] uppercase">
-            Design Team Member
+          <div className="text-[38px] leading-none font-extrabold tracking-[-0.03em]">
+            Applications
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-[13px] text-[#5c5a51] whitespace-nowrap">
             {totalCount} applicants · {starredCount} starred
           </div>
-          <button
-            onClick={() => setShowArchived((v) => !v)}
-            className="px-4 py-2.5 border border-border text-[11px] font-bold tracking-[0.14em] uppercase whitespace-nowrap cursor-pointer"
-            style={{
-              background: showArchived ? "#E3E8CE" : "transparent",
-              color: showArchived ? "#3F4A22" : "#5C5A51",
-            }}
-          >
-            Show archived
-          </button>
           <button
             onClick={() => setStarredOnly((v) => !v)}
             className="px-4 py-2.5 border border-border text-[11px] font-bold tracking-[0.14em] uppercase whitespace-nowrap cursor-pointer"
@@ -203,8 +143,10 @@ export function Board({ initialApplications }: { initialApplications: BoardCard[
               stageKey={col.key}
               label={col.label}
               items={col.items}
+              archived={col.key === "archived"}
               onOpen={(id) => router.push(`/review/a/${id}`)}
-              onStar={toggleStar}
+              onStar={starCard}
+              onPrefetch={prefetchCard}
             />
           ))}
         </div>
@@ -220,27 +162,46 @@ function Column({
   stageKey,
   label,
   items,
+  archived = false,
   onOpen,
   onStar,
+  onPrefetch,
 }: {
   stageKey: ApplicationStage;
   label: string;
   items: BoardCard[];
+  archived?: boolean;
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
+  onPrefetch: (id: string) => void;
 }) {
   const { setNodeRef } = useDroppable({ id: stageKey });
 
   return (
-    <div className="bg-board border border-rule-soft min-h-[420px]">
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-rule-soft">
+    <div
+      className={`border min-h-[420px] ${
+        archived ? "bg-board-archived border-rule" : "bg-board border-rule-soft"
+      }`}
+    >
+      <div
+        className={`flex items-center justify-between px-4 py-3.5 border-b ${
+          archived ? "border-rule" : "border-rule-soft"
+        }`}
+      >
         <div className="text-[11px] font-bold tracking-[0.16em] uppercase">{label}</div>
         <div className="text-[11px] font-bold text-muted">{items.length}</div>
       </div>
       <div ref={setNodeRef} className="grid gap-2.5 p-3 min-h-[80px]">
         <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
           {items.map((item) => (
-            <SortableCard key={item.id} card={item} onOpen={onOpen} onStar={onStar} />
+            <SortableCard
+              key={item.id}
+              card={item}
+              dimmed={archived}
+              onOpen={onOpen}
+              onStar={onStar}
+              onPrefetch={onPrefetch}
+            />
           ))}
         </SortableContext>
         {items.length === 0 && (
@@ -253,12 +214,16 @@ function Column({
 
 function SortableCard({
   card,
+  dimmed = false,
   onOpen,
   onStar,
+  onPrefetch,
 }: {
   card: BoardCard;
+  dimmed?: boolean;
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
+  onPrefetch: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -272,7 +237,7 @@ function SortableCard({
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <CardBody card={card} onOpen={onOpen} onStar={onStar} />
+      <CardBody card={card} dimmed={dimmed} onOpen={onOpen} onStar={onStar} onPrefetch={onPrefetch} />
     </div>
   );
 }
@@ -287,35 +252,52 @@ function CardPreview({ card }: { card: BoardCard }) {
 
 function CardBody({
   card,
+  dimmed = false,
   onOpen,
   onStar,
+  onPrefetch,
 }: {
   card: BoardCard;
+  dimmed?: boolean;
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
+  onPrefetch?: (id: string) => void;
 }) {
   return (
     <div
       onClick={() => onOpen(card.id)}
-      className="bg-surface border p-3.5 cursor-pointer hover:border-olive-light transition-colors"
-      style={{ borderColor: card.starred ? "#6F7C3C" : "#DCD9CD" }}
+      onPointerEnter={() => onPrefetch?.(card.id)}
+      className={`bg-surface border p-3.5 cursor-pointer hover:border-olive-light transition-colors${
+        dimmed ? " opacity-70" : ""
+      }`}
+      style={{ borderColor: !dimmed && card.starred ? "#6F7C3C" : "#DCD9CD" }}
     >
       <div className="flex items-start justify-between gap-2.5">
-        <div className="text-[15px] font-bold tracking-[-0.01em]">{card.full_name}</div>
+        <div
+          className={`text-[15px] font-bold tracking-[-0.01em]${dimmed ? " text-muted" : ""}`}
+        >
+          {card.full_name}
+        </div>
         <button
           onClick={(e) => {
             e.stopPropagation();
             onStar(card.id, !card.starred);
           }}
           aria-label={card.starred ? "Unstar" : "Star"}
-          className="text-[15px] leading-none cursor-pointer"
+          className="-m-1.5 p-1.5 text-[30px] leading-none cursor-pointer"
           style={{ color: card.starred ? "#6F7C3C" : "#B9B6A9" }}
         >
           {card.starred ? "★" : "☆"}
         </button>
       </div>
-      <div className="mt-1.5 text-xs text-[#6b6a62]">{card.year}</div>
-      <div className="mt-3 text-[10px] font-bold tracking-[0.12em] uppercase text-olive-light">
+      <div className={`mt-1.5 text-xs ${dimmed ? "text-faint" : "text-[#6b6a62]"}`}>
+        {card.year}
+      </div>
+      <div
+        className={`mt-3 text-[10px] font-bold tracking-[0.12em] uppercase ${
+          dimmed ? "text-muted" : "text-olive-light"
+        }`}
+      >
         {card.subteam}
       </div>
     </div>

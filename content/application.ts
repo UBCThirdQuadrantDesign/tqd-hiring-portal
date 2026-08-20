@@ -74,7 +74,7 @@ export type QuestionField =
 
 export const application = {
   cycle: "2026-27",
-  title: "Design Team Member",
+  title: "Application",
   closesAt: "2026-09-20T23:59:00-07:00",
   closesLabel: "September 20",
   meta: [
@@ -82,6 +82,36 @@ export const application = {
     { label: "Closes", value: "September 20" },
   ],
   subteams: SUBTEAMS,
+  // TODO: replace with the real job description. Rendered by the Overview tab
+  // (app/(public)/overview-panel.tsx); nothing else reads this, so headings,
+  // paragraphs, and bullets can be rewritten freely without touching the form.
+  overview: [
+    {
+      heading: "Who we are",
+      paragraphs: [
+        "Founded in September 2019 by 3 female engineering students, Third Quadrant Design brings together passionate students from various disciplines to learn and act on our climate crisis. Our team utilizes innovative technologies to design and build regenerative high-performance buildings.",
+        "From 2019–2025, we competed in the U.S. Department of Energy Solar Decathlon® Design Challenge collegiate competition and went undefeated with our 2020 and 2021 submissions.",
+      ],
+      bullets: [],
+    },
+    {
+      heading: "What you'll do",
+      paragraphs: [],
+      bullets: [
+        "Work inside one of four sub-teams — Architecture, Engineering Science, Discovery, or Marketing/Outreach.",
+        "Contribute to Vancouver Special 2.0, our Solar Decathlon submission now in design development.",
+        "Learn the tools the team runs on, from modelling and energy analysis to fabrication and storytelling.",
+        "Commit roughly 6–10 hours a week across the 2026–27 academic year.",
+      ],
+    },
+    {
+      heading: "How we review",
+      paragraphs: [
+        "We read every submission, then invite a shortlist to a thirty‑minute conversation in the studio. Offers go out after interviews close. Portfolios matter more than grades; a sketchbook page counts.",
+      ],
+      bullets: [],
+    },
+  ],
   questions: [
     {
       id: "full_name",
@@ -175,6 +205,11 @@ export const application = {
   closesLabel: string;
   meta: readonly { label: string; value: string }[];
   subteams: readonly string[];
+  overview: readonly {
+    heading: string;
+    paragraphs: readonly string[];
+    bullets: readonly string[];
+  }[];
   questions: readonly QuestionField[];
 };
 

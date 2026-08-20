@@ -97,7 +97,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
     resume.state.status === "done" && portfolio.state.status === "done" && !pending;
 
   return (
-    <form id={formId} action={formAction} className="grid gap-11 mt-11 mx-auto max-w-[780px] w-full">
+    <form id={formId} action={formAction} className="grid gap-11 w-full">
       {/* honeypot — hidden from real applicants, screen readers skip via aria-hidden */}
       <div className="hidden" aria-hidden="true">
         <label>

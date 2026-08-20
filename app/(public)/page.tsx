@@ -108,7 +108,6 @@ export default function HomePage() {
       {/* Footer */}
       <div className="px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-4 text-[11px] font-bold tracking-[0.16em] uppercase text-muted">
         <div>{studio.name}</div>
-        <div>{studio.footer.address}</div>
         <div>{studio.footer.cycle}</div>
       </div>
     </div>

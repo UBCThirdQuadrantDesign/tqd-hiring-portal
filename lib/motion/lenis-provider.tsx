@@ -29,6 +29,14 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       lerp: 0.3,
       duration: 0.3,
       easing: (t) => 1 - Math.pow(1 - t, 3), // expo-ish ease-out
+      // Same-page hash links (e.g. "Join the team" -> #apply) would otherwise
+      // jump natively; hand them to Lenis so they glide instead. The offset
+      // stands in for the target's scroll-mt, which scrollTo does not read.
+      anchors: {
+        offset: -40,
+        duration: 0.5,
+        easing: (t) => 1 - Math.pow(1 - t, 5),
+      },
     });
 
     const onTick = (time: number) => instance.raf(time * 1000);

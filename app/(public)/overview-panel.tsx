@@ -1,4 +1,11 @@
 import { application } from "@/content/application";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ScrollReveal } from "@/lib/motion/scroll-reveal";
 
 /** Job-description side of the apply section. Copy lives in content/application.ts. */
 export function OverviewPanel() {
@@ -38,6 +45,49 @@ export function OverviewPanel() {
           )}
         </div>
       ))}
+
+      {/* FAQ */}
+      <div className="pb-16 sm:pb-24">
+        <ScrollReveal>
+          <div className="text-[clamp(28px,3.2vw,48px)] leading-none font-extrabold tracking-[-0.03em] mb-7">
+            FAQ
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal delay={0.08}>
+          <Accordion multiple defaultValue={["item-1"]} className="w-full">
+            {faqItems.map((item) => (
+              <AccordionItem key={item.value} value={item.value}>
+                <AccordionTrigger>{item.trigger}</AccordionTrigger>
+                <AccordionContent>{item.content}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </ScrollReveal>
+      </div>
     </div>
   );
 }
+
+const faqItems = [
+  {
+    value: "item-1",
+    trigger: "Will there be an info session?",
+    content: "Yes. Maybe. I don't know.",
+  },
+  {
+    value: "item-2",
+    trigger: "Are late submissions accepted?",
+    content: "Email ubcthirdquadrantdesign@gmail.com for any issues.",
+  },
+  {
+    value: "item-3",
+    trigger: "Is it accessible?",
+    content: "Yes. It adheres to the WAI-ARIA design pattern.",
+  },
+  {
+    value: "item-4",
+    trigger: "Is it accessible?",
+    content: "Yes. It adheres to the WAI-ARIA design pattern.",
+  },
+];

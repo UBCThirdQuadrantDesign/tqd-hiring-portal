@@ -41,6 +41,18 @@ export type NoteRow = {
   updated_at: string;
 };
 
+/**
+ * A note as the applicant panel renders it: the row plus a resolved author
+ * name. Shared so the server query (actions.ts getApplicationDetail) and the
+ * realtime handler in the panel can't drift apart.
+ */
+export type ReviewerNote = {
+  id: string;
+  body: string;
+  created_at: string;
+  author_name: string;
+};
+
 export const STAGES: { key: ApplicationStage; label: string }[] = [
   { key: "new", label: "New" },
   { key: "reviewing", label: "Reviewing" },

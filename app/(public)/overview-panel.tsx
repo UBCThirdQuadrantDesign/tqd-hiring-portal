@@ -8,7 +8,7 @@ import {
 import { ScrollReveal } from "@/lib/motion/scroll-reveal";
 
 /** Job-description side of the apply section. Copy lives in content/application.ts. */
-export function OverviewPanel() {
+export function OverviewPanel({ onApply }: { onApply: () => void }) {
   return (
     <div className="grid gap-12">
       <div className="flex flex-wrap gap-x-16 gap-y-4">
@@ -47,9 +47,9 @@ export function OverviewPanel() {
       ))}
 
       {/* FAQ */}
-      <div className="pb-16 sm:pb-24">
+      <div>
         <ScrollReveal>
-          <div className="text-[clamp(28px,3.2vw,48px)] leading-none font-extrabold tracking-[-0.03em] mb-7">
+          <div className="text-[22px] leading-none font-extrabold tracking-[-0.03em] mb-3">
             FAQ
           </div>
         </ScrollReveal>
@@ -63,6 +63,19 @@ export function OverviewPanel() {
               </AccordionItem>
             ))}
           </Accordion>
+        </ScrollReveal>
+      </div>
+
+      {/* Apply CTA — jumps straight to the first question of the survey. */}
+      <div className="pb-16 sm:pb-24">
+        <ScrollReveal>
+          <button
+            type="button"
+            onClick={onApply}
+            className="inline-flex items-center gap-3 px-6 py-4 bg-ink text-bone text-xs font-bold tracking-[0.16em] uppercase border-0 cursor-pointer hover:bg-olive transition-colors"
+          >
+            <span>Apply Now</span>
+          </button>
         </ScrollReveal>
       </div>
     </div>

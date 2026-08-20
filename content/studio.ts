@@ -32,7 +32,7 @@ export const studio = {
       title: "Vancouver Special 2.0",
       year: "2024–26",
       body: "A retrofit strategy for the city's most common house type, entered in the Solar Decathlon Design Challenge and now in design development.",
-      image: "/works/vancouver-special-2.0.png",
+      image: "/works/Vancouver-Special-2.0.png",
     },
     {
       title: "Third Space Commons",

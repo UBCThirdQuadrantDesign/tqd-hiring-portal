@@ -1,17 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { noteSchema, applicationStages, type ApplicationStage } from "@/lib/schema";
 
 /** All actions run as the signed-in reviewer — RLS (is_reviewer()) is the real gate, not this file. */
 
-/* setStage/reorder/toggleStar deliberately skip revalidatePath: /review is
-   dynamic (cookie-backed Supabase client), so nothing is cached that needs
-   invalidating, and the client already applies these optimistically via
-   board-store.tsx. Revalidating only forced an RSC refetch of the board and
-   the open applicant panel on every click. Note mutations still revalidate —
-   their data does come from the panel's server component. */
+/* No mutation here calls revalidatePath: /review is dynamic (cookie-backed
+   Supabase client), so nothing is cached that needs invalidating, and the
+   client applies every one of these optimistically and then reconciles over
+   Realtime — the board via board-store.tsx, notes via the panel's own notes
+   channel. Revalidating only forced an RSC refetch of the board and the open
+   applicant panel on every click. */
 
 export async function setStage(applicationId: string, stage: ApplicationStage) {
   if (!applicationStages.includes(stage)) throw new Error("Invalid stage.");
@@ -55,14 +54,12 @@ export async function addNote(applicationId: string, body: string) {
     body: parsed.body,
   });
   if (error) throw error;
-  revalidatePath("/review");
 }
 
 export async function deleteNote(noteId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("notes").delete().eq("id", noteId);
   if (error) throw error;
-  revalidatePath("/review");
 }
 
 export async function getApplicationDetail(applicationId: string) {

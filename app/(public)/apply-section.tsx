@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApplyForm } from "./apply-form";
 import { ApplyTabs, type TabDef } from "./apply-tabs";
@@ -16,6 +16,7 @@ const TABS: readonly TabDef<TabId>[] = [
 export function ApplySection() {
   const router = useRouter();
   const idPrefix = useId();
+  const sectionRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<TabId>("overview");
 
   const onSubmitted = (name: string) => {
@@ -24,8 +25,19 @@ export function ApplySection() {
     router.push(`/apply/success?name=${encodeURIComponent(name)}`);
   };
 
+  // Apply CTA at the foot of the Overview: switch tabs and cut — not glide —
+  // to the top of the section so the first question is on screen. A <button>
+  // rather than an <a href="#apply"> so Lenis's anchor smoothing doesn't turn
+  // the jump into a scroll back up through the whole overview. Both panels
+  // stay mounted, so the header doesn't move when `active` changes and the
+  // scroll can happen in the same tick as the state update.
+  const goToApplication = () => {
+    setActive("application");
+    sectionRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+  };
+
   return (
-    <div className="mx-auto max-w-[780px] w-full">
+    <div ref={sectionRef} className="mx-auto max-w-[780px] w-full scroll-mt-10">
       <ApplyTabs tabs={TABS} active={active} onChange={setActive} idPrefix={idPrefix} />
 
       {/* Both panels stay mounted. ApplyForm holds uploaded-file state that is
@@ -38,7 +50,7 @@ export function ApplySection() {
         hidden={active !== "overview"}
         className="pt-11"
       >
-        <OverviewPanel />
+        <OverviewPanel onApply={goToApplication} />
       </div>
 
       <div

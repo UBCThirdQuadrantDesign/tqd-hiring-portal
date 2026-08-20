@@ -30,11 +30,11 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       duration: 0.3,
       easing: (t) => 1 - Math.pow(1 - t, 3), // expo-ish ease-out
       // Same-page hash links (e.g. "Join the team" -> #apply) would otherwise
-      // jump natively; hand them to Lenis so they glide instead. The offset
-      // stands in for the target's scroll-mt, which scrollTo does not read.
+      // jump natively; hand them to Lenis so they glide instead. Offset 0 lands
+      // flush at the target's top edge — keep in sync with #apply's scroll-margin.
       anchors: {
-        offset: -40,
-        duration: 0.5,
+        offset: -30,
+        duration: 0.6,
         easing: (t) => 1 - Math.pow(1 - t, 5),
       },
     });

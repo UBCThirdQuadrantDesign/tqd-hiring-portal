@@ -101,7 +101,7 @@ export default function HomePage() {
       </div>
 
       {/* Application */}
-      <div id="apply" className="px-6 sm:px-10 pt-6 pb-24 sm:pb-32 max-w-[1440px] mx-auto scroll-mt-10">
+      <div id="apply" className="px-6 sm:px-10 pt-6 pb-24 sm:pb-32 max-w-[1440px] mx-auto">
         <ApplySection />
       </div>
 

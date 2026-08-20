@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { STAGES } from "@/lib/board-types";
+import { STAGES, type ReviewerNote } from "@/lib/board-types";
 import type { ApplicationStage } from "@/lib/schema";
 import { application as applicationContent } from "@/content/application";
 import { addNote as addNoteAction } from "@/app/(review)/review/actions";
 import { useBoardStore } from "@/app/(review)/review/board-store";
 import { drawerSkeletonJustShown, useLockBodyScroll } from "@/components/drawer-shell";
+import { createClient } from "@/lib/supabase/client";
+import { subscribeWithAuth } from "@/lib/supabase/realtime";
 
 /** Must stay in sync with --drawer-duration in globals.css. */
 const DRAWER_DURATION_MS = 220;
@@ -23,12 +25,10 @@ function attachmentHref(id: string) {
   return `/api/reviewer/attachment/${id}`;
 }
 
-type Note = {
-  id: string;
-  body: string;
-  created_at: string;
-  author_name: string;
-};
+type Note = ReviewerNote;
+
+/** Locally-added notes carry this id prefix until the server broadcast lands. */
+const OPTIMISTIC_PREFIX = "optimistic-";
 
 type ApplicationDetail = {
   id: string;
@@ -66,6 +66,86 @@ export function ApplicationDrawer({
   // The loading skeleton already slid the panel in — don't replay it.
   const [skipEntrance] = useState(() => mode === "modal" && drawerSkeletonJustShown());
   const [, startTransition] = useTransition();
+  const [supabase] = useState(() => createClient());
+
+  // Reopening the panel on a different applicant can reuse this component
+  // instance, and the previous applicant's notes would linger. Reseed during
+  // render (React's adjust-state-on-prop-change pattern) rather than in an
+  // effect, so the stale list never paints.
+  const applicationId = application.id;
+  const [seededFor, setSeededFor] = useState(applicationId);
+  if (seededFor !== applicationId) {
+    setSeededFor(applicationId);
+    setLocalNotes(notes);
+  }
+
+  // Notes stream in too, so a note left by another reviewer appears in an
+  // already-open panel. Realtime rows carry author_id, not a name, so resolve
+  // it against the reviewer roster the same way getApplicationDetail does. The
+  // roster query and the subscription start together, but the channel has to
+  // authenticate first, so the map is populated by the time events arrive.
+  useEffect(() => {
+    let cancelled = false;
+    const authors = new Map<string, string>();
+
+    void supabase
+      .from("reviewers")
+      .select("id, name, email")
+      .then(({ data }) => {
+        if (cancelled) return;
+        for (const r of data ?? []) authors.set(r.id, r.name ?? r.email ?? "Reviewer");
+      });
+
+    const unsubscribe = subscribeWithAuth<{
+      id: string;
+      body: string;
+      created_at: string;
+      author_id: string;
+    }>(
+      supabase,
+      `notes-${applicationId}`,
+      {
+        event: "*",
+        schema: "public",
+        table: "notes",
+        filter: `application_id=eq.${applicationId}`,
+      },
+      (payload) => {
+        setLocalNotes((prev) => {
+          if (payload.eventType === "DELETE") {
+            const id = (payload.old as { id?: string }).id;
+            return id ? prev.filter((n) => n.id !== id) : prev;
+          }
+          const row = payload.new;
+          const note: Note = {
+            id: row.id,
+            body: row.body,
+            created_at: row.created_at,
+            author_name: authors.get(row.author_id) ?? "Reviewer",
+          };
+          if (prev.some((n) => n.id === note.id)) {
+            return prev.map((n) => (n.id === note.id ? note : n));
+          }
+          // Our own note coming back from the server: swap the optimistic copy
+          // for the real row instead of rendering it twice.
+          const optimistic = prev.findIndex(
+            (n) => n.id.startsWith(OPTIMISTIC_PREFIX) && n.body === note.body
+          );
+          if (optimistic !== -1) {
+            const next = [...prev];
+            next[optimistic] = { ...note, author_name: "You" };
+            return next;
+          }
+          return [...prev, note];
+        });
+      }
+    );
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [supabase, applicationId]);
 
   // The board owns stage/starred so both views move together. Falling back to
   // the server props keeps this working if the card somehow isn't in the store.
@@ -121,7 +201,7 @@ export function ApplicationDrawer({
     const body = draft.trim();
     if (!body) return;
     const optimistic: Note = {
-      id: `optimistic-${Date.now()}`,
+      id: `${OPTIMISTIC_PREFIX}${Date.now()}`,
       body,
       created_at: new Date().toISOString(),
       author_name: "You",

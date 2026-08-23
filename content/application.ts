@@ -75,21 +75,19 @@ export type QuestionField =
 export const application = {
   cycle: "2026-27",
   title: "Application",
-  closesAt: "2026-09-20T23:59:00-07:00",
-  closesLabel: "September 20",
+  closesAt: "2026-09-13T23:59:00-07:00",
+  closesLabel: "September 13",
   meta: [
     { label: "Commitment", value: "6–10 hrs / week" },
-    { label: "Closes", value: "September 20" },
+    { label: "Closes", value: "Sunday, September 13, 11:59 PM" },
   ],
   subteams: SUBTEAMS,
-  // TODO: replace with the real job description. Rendered by the Overview tab
-  // (app/(public)/overview-panel.tsx); nothing else reads this, so headings,
-  // paragraphs, and bullets can be rewritten freely without touching the form.
+ 
   overview: [
     {
-      heading: "Who we are",
+      heading: "Roles",
       paragraphs: [
-        "Founded in September 2019 by 3 female engineering students, Third Quadrant Design brings together passionate students from various disciplines to learn and act on our climate crisis. Our team utilizes innovative technologies to design and build regenerative high-performance buildings.",
+        "We are hiring for:",
         "From 2019–2025, we competed in the U.S. Department of Energy Solar Decathlon® Design Challenge collegiate competition and went undefeated with our 2020 and 2021 submissions.",
       ],
       bullets: [],

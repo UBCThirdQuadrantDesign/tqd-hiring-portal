@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useId, useMemo, useState } from "react";
+import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { nanoid } from "nanoid";
 import { submitApplication, type SubmitState } from "./actions";
 import { application } from "@/content/application";
@@ -25,9 +25,7 @@ const emptyDraft: DraftFields = {
   full_name: "",
   email: "",
   faculty: "",
-  year: application.questions.find((q) => q.id === "year")!.type === "select"
-    ? (application.questions.find((q) => q.id === "year") as { options: readonly string[] }).options[0]
-    : "",
+  year: "",
   subteam: "",
   why_join: "",
   hours_per_week: "",
@@ -41,26 +39,32 @@ function wordCount(value: string) {
 
 export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void }) {
   const formId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
   const [draftId] = useState(() => nanoid());
   // Draft persistence — long-form answers are the thing most likely to be
-  // lost to an accidental navigation. Read lazily so it happens once, on
-  // the client, without a setState-in-effect render cascade; guarded for
-  // SSR where localStorage doesn't exist.
-  const [fields, setFields] = useState<DraftFields>(() => {
-    if (typeof window === "undefined") return emptyDraft;
-    try {
-      const saved = localStorage.getItem(DRAFT_KEY);
-      return saved ? { ...emptyDraft, ...JSON.parse(saved) } : emptyDraft;
-    } catch {
-      return emptyDraft;
-    }
-  });
+  // lost to an accidental navigation. The saved draft can only be read after
+  // mount: reading it during the initial render makes the client markup differ
+  // from the server's (which has no localStorage) and fails hydration.
+  const [fields, setFields] = useState<DraftFields>(emptyDraft);
+  const draftLoaded = useRef(false);
   const [state, formAction, pending] = useActionState(submitApplication, initialState);
 
   const resume = useFileUpload("resume", draftId);
   const portfolio = useFileUpload("portfolio", draftId);
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) setFields((current) => ({ ...current, ...JSON.parse(saved) }));
+    } catch {
+      // ignore
+    }
+    draftLoaded.current = true;
+  }, []);
+
+  useEffect(() => {
+    // Don't let the empty first render overwrite a stored draft.
+    if (!draftLoaded.current) return;
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(fields));
     } catch {
@@ -79,6 +83,37 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
     }
   }, [state, onSubmitted]);
 
+  // Native constraint validation is off (see noValidate below) so every
+  // rejection comes back from the server action at once. Nothing scrolls the
+  // page for us any more, so jump to the first offending field ourselves —
+  // otherwise an error 800px down the form is invisible after submit.
+  useEffect(() => {
+    const form = formRef.current;
+    const errors = state.fieldErrors;
+    if (!form || !errors || Object.keys(errors).length === 0) return;
+
+    // Server issue order is schema order, not page order — walk the DOM so we
+    // land on whichever bad field is physically highest. The file fields have
+    // no focusable control of their own, so they carry a data-field-anchor.
+    const target = Array.from(
+      form.querySelectorAll<HTMLElement>("[name], [data-field-anchor]")
+    ).find((el) => {
+      const key = el.dataset.fieldAnchor ?? el.getAttribute("name");
+      if (!key || !(key in errors)) return false;
+      // Skips the hidden *_path inputs, which have no layout box.
+      return el.offsetParent !== null || el.getBoundingClientRect().height > 0;
+    });
+    if (!target) return;
+
+    const anchor = target.closest("label") ?? target;
+    const top = window.scrollY + anchor.getBoundingClientRect().top - 120;
+    window.scrollTo({ top: Math.max(top, 0), behavior: "auto" });
+    // preventScroll so the browser does not re-centre and undo the landing.
+    if (typeof (target as HTMLInputElement).focus === "function") {
+      (target as HTMLInputElement).focus({ preventScroll: true });
+    }
+  }, [state]);
+
   const field = (k: keyof DraftFields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setFields((f) => ({ ...f, [k]: e.target.value }));
 
@@ -93,11 +128,22 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
     "px-4 py-3.5 text-base text-ink bg-surface border border-border outline-none transition-colors focus:border-olive-light focus:bg-white";
   const labelClass = "text-xs font-bold tracking-[0.1em] uppercase text-body";
 
+  // Native <select> arrows are painted by the UA flush against the right
+  // border and ignore padding-right, so we hide the native one and draw our
+  // own chevron as a background image we can inset properly.
+  const selectClass = `${inputClass} appearance-none bg-no-repeat cursor-pointer pr-11`;
+  const selectArrow = {
+    backgroundImage:
+      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%238b897e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
+    backgroundPosition: "right 1rem center",
+    backgroundSize: "12px 8px",
+  };
+
   const canSubmit =
     resume.state.status === "done" && portfolio.state.status === "done" && !pending;
 
   return (
-    <form id={formId} action={formAction} className="grid gap-11 w-full">
+    <form ref={formRef} id={formId} action={formAction} noValidate className="grid gap-11 w-full">
       {/* honeypot — hidden from real applicants, screen readers skip via aria-hidden */}
       <div className="hidden" aria-hidden="true">
         <label>
@@ -113,7 +159,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
       )}
 
       <div className="grid gap-[22px]">
-        <label className="grid gap-2">
+        <label className="grid gap-2 content-start">
           <span className={labelClass}>Full name</span>
           <input
             name="full_name"
@@ -132,7 +178,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
         </label>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-[22px]">
-          <label className="grid gap-2">
+          <label className="grid gap-2 content-start">
             <span className={labelClass}>Email</span>
             <input
               name="email"
@@ -149,7 +195,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
               </span>
             )}
           </label>
-          <label className="grid gap-2">
+          <label className="grid gap-2 content-start">
             <span className={labelClass}>Faculty</span>
             <input
               name="faculty"
@@ -158,15 +204,32 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
               value={fields.faculty}
               onChange={field("faculty")}
               className={inputClass}
+              aria-describedby={state.fieldErrors?.faculty ? `${formId}-faculty-error` : undefined}
             />
+            {state.fieldErrors?.faculty && (
+              <span id={`${formId}-faculty-error`} className="text-xs text-red-700">
+                {state.fieldErrors.faculty}
+              </span>
+            )}
           </label>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-[22px]">
-        <label className="grid gap-2">
+        <label className="grid gap-2 content-start">
           <span className={labelClass}>Year</span>
-          <select name="year" value={fields.year} onChange={field("year")} className={inputClass}>
+          <select
+            name="year"
+            value={fields.year}
+            onChange={field("year")}
+            className={selectClass}
+            style={selectArrow}
+            required
+            aria-describedby={state.fieldErrors?.year ? `${formId}-year-error` : undefined}
+          >
+            <option value="" disabled>
+              Choose one
+            </option>
             {yearQ && yearQ.type === "select" &&
               yearQ.options.map((o) => (
                 <option key={o} value={o}>
@@ -174,10 +237,23 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
                 </option>
               ))}
           </select>
+          {state.fieldErrors?.year && (
+            <span id={`${formId}-year-error`} className="text-xs text-red-700">
+              {state.fieldErrors.year}
+            </span>
+          )}
         </label>
-        <label className="grid gap-2">
+        <label className="grid gap-2 content-start">
           <span className={labelClass}>Sub-team interest</span>
-          <select name="subteam" value={fields.subteam} onChange={field("subteam")} className={inputClass} required>
+          <select
+            name="subteam"
+            value={fields.subteam}
+            onChange={field("subteam")}
+            className={selectClass}
+            style={selectArrow}
+            required
+            aria-describedby={state.fieldErrors?.subteam ? `${formId}-subteam-error` : undefined}
+          >
             <option value="" disabled>
               Choose one
             </option>
@@ -188,10 +264,15 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
                 </option>
               ))}
           </select>
+          {state.fieldErrors?.subteam && (
+            <span id={`${formId}-subteam-error`} className="text-xs text-red-700">
+              {state.fieldErrors.subteam}
+            </span>
+          )}
         </label>
       </div>
 
-      <label className="grid gap-2">
+      <label className="grid gap-2 content-start">
         <span className={labelClass}>Why would you like to join TQD? What do you hope to gain from being part of the team?</span>
         <textarea
           name="why_join"
@@ -200,14 +281,17 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           value={fields.why_join}
           onChange={field("why_join")}
           className={inputClass}
+          aria-describedby={state.fieldErrors?.why_join ? `${formId}-why_join-error` : undefined}
         />
         <span className="text-[13px] text-muted">{whyWords} / 250 words</span>
         {state.fieldErrors?.why_join && (
-          <span className="text-xs text-red-700">{state.fieldErrors.why_join}</span>
+          <span id={`${formId}-why_join-error`} className="text-xs text-red-700">
+            {state.fieldErrors.why_join}
+          </span>
         )}
       </label>
 
-      <label className="grid gap-2">
+      <label className="grid gap-2 content-start">
         <span className={labelClass}>How many hours can you dedicate per week?</span>
         <input
           name="hours_per_week"
@@ -216,10 +300,16 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           value={fields.hours_per_week}
           onChange={field("hours_per_week")}
           className={inputClass}
+          aria-describedby={state.fieldErrors?.hours_per_week ? `${formId}-hours_per_week-error` : undefined}
         />
+        {state.fieldErrors?.hours_per_week && (
+          <span id={`${formId}-hours_per_week-error`} className="text-xs text-red-700">
+            {state.fieldErrors.hours_per_week}
+          </span>
+        )}
       </label>
 
-      <label className="grid gap-2">
+      <label className="grid gap-2 content-start">
         <span className={labelClass}>What other commitments/hobbies do you have?</span>
         <textarea
           name="other_commitments"
@@ -228,32 +318,42 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           value={fields.other_commitments}
           onChange={field("other_commitments")}
           className={inputClass}
+          aria-describedby={state.fieldErrors?.other_commitments ? `${formId}-other_commitments-error` : undefined}
         />
         <span className="text-[13px] text-muted">{commitWords} / 150 words</span>
+        {state.fieldErrors?.other_commitments && (
+          <span id={`${formId}-other_commitments-error`} className="text-xs text-red-700">
+            {state.fieldErrors.other_commitments}
+          </span>
+        )}
       </label>
 
       <div className="grid gap-6">
         {resumeQ && resumeQ.type === "file" && (
-          <FileDropField
-            label={resumeQ.label}
-            accept={resumeQ.accept}
-            maxSize={resumeQ.maxSize}
-            state={resume.state}
-            onFile={resume.upload}
-            onRemove={resume.reset}
-            error={state.fieldErrors?.resume_path}
-          />
+          <div data-field-anchor="resume_path">
+            <FileDropField
+              label={resumeQ.label}
+              accept={resumeQ.accept}
+              maxSize={resumeQ.maxSize}
+              state={resume.state}
+              onFile={resume.upload}
+              onRemove={resume.reset}
+              error={state.fieldErrors?.resume_path}
+            />
+          </div>
         )}
         {portfolioQ && portfolioQ.type === "file" && (
-          <FileDropField
-            label={portfolioQ.label}
-            accept={portfolioQ.accept}
-            maxSize={portfolioQ.maxSize}
-            state={portfolio.state}
-            onFile={portfolio.upload}
-            onRemove={portfolio.reset}
-            error={state.fieldErrors?.portfolio_path}
-          />
+          <div data-field-anchor="portfolio_path">
+            <FileDropField
+              label={portfolioQ.label}
+              accept={portfolioQ.accept}
+              maxSize={portfolioQ.maxSize}
+              state={portfolio.state}
+              onFile={portfolio.upload}
+              onRemove={portfolio.reset}
+              error={state.fieldErrors?.portfolio_path}
+            />
+          </div>
         )}
         <input type="hidden" name="resume_path" value={resume.state.path ?? ""} />
         <input type="hidden" name="portfolio_path" value={portfolio.state.path ?? ""} />

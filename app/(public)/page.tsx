@@ -1,8 +1,13 @@
 import Image from "next/image";
 import { studio } from "@/content/studio";
 import { WorkImage } from "@/components/work-image";
+import { CaptainPolaroid } from "@/components/captain-polaroid";
 import { ScrollReveal } from "@/lib/motion/scroll-reveal";
 import { ApplySection } from "./apply-section";
+
+/** Tasteful misalignment for the captain polaroids — tilt and vertical drift. */
+const CAPTAIN_ROTATIONS = [-3, 0, 3];
+const CAPTAIN_OFFSETS = ["sm:-mt-3", "sm:mt-1", "sm:mt-0"];
 
 export default function HomePage() {
   return (
@@ -29,7 +34,7 @@ export default function HomePage() {
 
       {/* Who we are */}
       <div className="px-6 sm:px-10 py-16 sm:py-24 max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-[1.35fr_1fr] gap-12 md:gap-16">
-        <ScrollReveal>
+        <div>
           <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-muted mb-7">
             Who we are
           </div>
@@ -40,36 +45,58 @@ export default function HomePage() {
               </p>
             ))}
           </div>
+
           <a
             href="#apply"
-            className="inline-flex items-center gap-3 mt-11 px-6 py-4 bg-ink text-bone! text-xs font-bold tracking-[0.16em] uppercase no-underline hover:no-underline cursor-pointer hover:bg-olive transition-colors"
+            className="mt-9 inline-flex items-center gap-3 px-6 py-4 bg-ink text-bone! text-xs font-bold tracking-[0.16em] uppercase no-underline hover:no-underline cursor-pointer hover:bg-olive transition-colors"
           >
             <span>Join the team</span>
             <span aria-hidden="true">↘</span>
           </a>
-        </ScrollReveal>
+        </div>
 
-        <ScrollReveal delay={0.1}>
-          <div className="grid gap-6 content-start">
-            <div className="bg-sage-pale p-8">
-              <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-olive mb-4">
-                Currently
-              </div>
-              <div className="grid gap-3.5 text-[15px] leading-relaxed text-sage-deep">
-                {studio.currently.map((item, i) => (
-                  <div key={i}>
-                    {item.strong && <strong className="font-bold">{item.strong}</strong>}
-                    {item.rest}
-                  </div>
-                ))}
-              </div>
+        <div className="grid gap-6 content-start">
+          <div className="bg-sage-pale p-8 -mt-8">
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-olive mb-4">
+              Where we're going
+            </div>
+            <div className="grid gap-3.5 text-[15px] leading-relaxed text-sage-deep">
+              {studio.currently.map((item, i) => (
+                <div key={i}>
+                  {item.strong && <strong className="font-bold">{item.strong}</strong>}
+                  {item.rest}
+                </div>
+              ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Team Captains */}
+      <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[1440px] mx-auto">
+        
+        <ScrollReveal>
+          <div className="text-center text-[clamp(18px,2.4vw,30px)] leading-none font-bold tracking-[-0.01em] -mt-5">
+            Captains
+          </div>
         </ScrollReveal>
+        
+
+        <div className="mt-12 sm:mt-14 flex flex-col sm:flex-row items-center sm:items-start justify-center gap-10 sm:gap-6 lg:gap-10">
+          {studio.captains.map((c, i) => (
+            <ScrollReveal
+              key={c.name}
+              delay={i * 0.08}
+              className={CAPTAIN_OFFSETS[i]}
+            >
+              <CaptainPolaroid name={c.name} src={c.image} rotate={CAPTAIN_ROTATIONS[i]} />
+            </ScrollReveal>
+          ))}
+        </div>
       </div>
 
       {/* Selected Works */}
-      <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[1440px] mx-auto">
+      <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[1440px] mx-auto mt-10">
         <div className="flex justify-between items-end gap-10 py-7">
           <ScrollReveal>
             <div className="text-[clamp(28px,3.2vw,48px)] leading-none font-extrabold tracking-[-0.03em]">
@@ -101,7 +128,7 @@ export default function HomePage() {
       </div>
 
       {/* Application */}
-      <div id="apply" className="px-6 sm:px-10 pt-6 pb-24 sm:pb-32 max-w-[1440px] mx-auto">
+      <div id="apply" className="px-6 sm:px-10 pt-6 pb-12 sm:pb-16 max-w-[1440px] mx-auto">
         <ApplySection />
       </div>
 

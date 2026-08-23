@@ -1,16 +1,16 @@
 /** Static studio copy — from the design reference, not derived from the application content model. */
 
 export const studio = {
-  name: "Recruitment 26/27",
-  recruitmentLine: "CLOSES SEPT 20TH 11:59PM",
+  name: "Hiring 2026/27",
+  recruitmentLine: "CLOSES Sunday, Sept 13th, 11:59PM",
   intro: [
     "Founded in September 2019 by 3 female engineering students, Third Quadrant Design brings together passionate students from various disciplines to learn and act on our climate crisis. Our team utilizes innovative technologies to design and build regenerative high-performance buildings.",
     "From 2019-2025, we competed in the U.S. Department of Energy Solar Decathlon® Design Challenge collegiate competition and went undefeated with our 2020 and 2021 submissions. ",
   ],
   currently: [
     {
-      strong: "Vancouver Special 2.0",
-      rest: " — our 2024 Solar Decathlon Design Challenge submission, now in design development.",
+      strong: "In 2026 to 2027,",
+      rest: " our goal is to deliver a publication on how passive house technologies can ",
     },
     {
       strong: null,
@@ -26,11 +26,11 @@ export const studio = {
       title: "Poetry Night",
       year: "2025–26",
       body: "A passive house retrofit of an Iranian Yakhchal designed to break gender barriers and bring communities together. Designed for the 2026 Buildner Re:Form Architecture Competition.",
-      image: "/works/Poetry-Night-2.png",
+      image: "/works/tqd-poetry-night.jpg",
     },
     {
       title: "Vancouver Special 2.0",
-      year: "2024–26",
+      year: "2024–25",
       body: "A retrofit strategy for the city's most common house type, entered in the Solar Decathlon Design Challenge and now in design development.",
       image: "/works/Vancouver-Special-2.0.png",
     },
@@ -41,9 +41,12 @@ export const studio = {
       image: "/works/third-space-commons.avif",
     },
   ],
-  howWeReview:
-    "We read every submission, then invite a shortlist to a thirty‑minute conversation in the studio. Offers go out after interviews close. Portfolios matter more than grades; a sketchbook page counts.",
+  captains: [
+    { name: "Emma Heris", image: "/captains/captain-1.jpg" },
+    { name: "Spencer Sun", image: "/captains/captain-2.jpg" },
+    { name: "Juna Ibrahim", image: "/captains/captain-3.jpg" },
+  ],
   footer: {
-    cycle: "2026–27",
+    cycle: "Third Quadrant Design",
   },
 } as const;

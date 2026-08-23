@@ -48,13 +48,10 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
 
       {/* FAQ */}
       <div>
-        <ScrollReveal>
           <div className="text-[22px] leading-none font-extrabold tracking-[-0.03em] mb-3">
             FAQ
           </div>
-        </ScrollReveal>
 
-        <ScrollReveal delay={0.08}>
           <Accordion multiple defaultValue={["item-1"]} className="w-full">
             {faqItems.map((item) => (
               <AccordionItem key={item.value} value={item.value}>
@@ -63,12 +60,10 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
               </AccordionItem>
             ))}
           </Accordion>
-        </ScrollReveal>
       </div>
 
       {/* Apply CTA — jumps straight to the first question of the survey. */}
-      <div className="pb-16 sm:pb-24">
-        <ScrollReveal>
+      <div>
           <button
             type="button"
             onClick={onApply}
@@ -76,7 +71,6 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
           >
             <span>Apply Now</span>
           </button>
-        </ScrollReveal>
       </div>
     </div>
   );

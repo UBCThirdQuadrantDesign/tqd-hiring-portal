@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SUBTEAMS, YEARS } from "@/content/application";
+import { UPLOAD_PATH_PATTERN } from "@/lib/storage";
 
 /**
  * Zod schema for the application form, shared client (react-hook-form
@@ -34,8 +35,8 @@ export const applicationFormSchema = z.object({
     .or(z.literal("")),
   // Uploads are handled out-of-band via signed URLs (see lib/upload.ts);
   // the form only carries the resulting storage paths.
-  resume_path: z.string().min(1, "Attach your résumé."),
-  portfolio_path: z.string().min(1, "Attach your portfolio."),
+  resume_path: z.string().min(1, "Attach your résumé.").regex(UPLOAD_PATH_PATTERN, "Attach your résumé."),
+  portfolio_path: z.string().min(1, "Attach your portfolio.").regex(UPLOAD_PATH_PATTERN, "Attach your portfolio."),
   // Honeypot — must stay empty. Real applicants never see or fill this field.
   company: z.string().max(0).optional().or(z.literal("")),
 });

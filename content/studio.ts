@@ -10,7 +10,7 @@ export const studio = {
   currently: [
     {
       strong: "In 2026 to 2027,",
-      rest: " our goal is to deliver a publication on how passive house technologies can ",
+      rest: " our goal is to deliver a publication on the impact and methodology of using passive house technologies  ",
     },
     {
       strong: null,

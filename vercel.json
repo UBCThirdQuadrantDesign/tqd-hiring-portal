@@ -1,0 +1,1 @@
+{ "crons": [{ "path": "/api/cron/sweep-orphans", "schedule": "0 9 * * *" }] }

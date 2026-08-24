@@ -47,53 +47,56 @@ export async function submitApplication(
 
   const admin = createAdminClient();
 
-  // Fractional-index position: append to the end of the "new" column.
-  const { data: maxRow } = await admin
-    .from("applications")
-    .select("position")
-    .eq("stage", "new")
-    .order("position", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const position = (maxRow?.position ?? 0) + 1;
-
-  const { data: inserted, error: insertError } = await admin
-    .from("applications")
-    .insert({
-      full_name,
-      email,
-      faculty,
-      year,
-      subteam,
-      answers,
-      position,
-    })
-    .select("id")
-    .single();
-
-  if (insertError || !inserted) {
-    return { ok: false, error: "Something went wrong submitting. Try again." };
-  }
-
-  const attachments = [
-    { kind: "resume", path: resume_path },
-    { kind: "portfolio", path: portfolio_path },
+  // Verify both uploaded objects actually exist before writing anything —
+  // `resume_path` / `portfolio_path` are otherwise trusted client input.
+  const attachmentInputs = [
+    { kind: "resume", path: resume_path, field: "resume_path" },
+    { kind: "portfolio", path: portfolio_path, field: "portfolio_path" },
   ];
 
-  for (const { kind, path } of attachments) {
-    const { data: fileInfo } = await admin.storage
-      .from(APPLICATIONS_BUCKET)
-      .list(path.split("/")[0], { search: path.split("/").slice(1).join("/") });
-    const found = fileInfo?.[0];
+  const attachments: {
+    kind: string;
+    storage_path: string;
+    filename: string;
+    size_bytes: number;
+    mime_type: string;
+  }[] = [];
 
-    await admin.from("attachments").insert({
-      application_id: inserted.id,
+  for (const { kind, path, field } of attachmentInputs) {
+    const { data: info, error } = await admin.storage
+      .from(APPLICATIONS_BUCKET)
+      .info(path);
+
+    if (error || !info) {
+      return {
+        ok: false,
+        error: "Check the highlighted fields.",
+        fieldErrors: { [field]: "This file could not be found. Please re-upload it." },
+      };
+    }
+
+    attachments.push({
       kind,
       storage_path: path,
-      filename: found?.name ?? path.split("/").pop() ?? kind,
-      size_bytes: found?.metadata?.size ?? 0,
-      mime_type: found?.metadata?.mimetype ?? "application/octet-stream",
+      filename: path.split("/").pop() ?? kind,
+      size_bytes: info.size ?? 0,
+      mime_type: info.contentType ?? "application/octet-stream",
     });
+  }
+
+  const { data: newId, error: rpcError } = await admin.rpc("submit_application", {
+    p_full_name: full_name,
+    p_email: email,
+    p_faculty: faculty,
+    p_year: year,
+    p_subteam: subteam,
+    p_answers: answers,
+    p_attachments: attachments,
+  });
+
+  if (rpcError || !newId) {
+    console.error("[submit-application] rpc failed", rpcError);
+    return { ok: false, error: "Something went wrong submitting. Try again." };
   }
 
   return { ok: true, submittedName: full_name };

@@ -14,75 +14,69 @@ export default function HomePage() {
     <div id="top" className="min-h-screen bg-bone text-ink">
       {/* Masthead */}
       <div className="relative overflow-hidden bg-bone">
-        <div className="px-6 sm:px-10 pt-14 pb-4 max-w-[1440px] mx-auto">
+        <div className="px-6 sm:px-10 pt-14 pb-4 max-w-[900px] mx-auto text-center">
           <Image
             src="/logo/tqd-logo.avif"
             alt="Third Quadrant Design"
             width={280}
             height={96}
             priority
-            className="h-12 sm:h-14 w-auto mb-8"
+            className="h-12 sm:h-14 w-auto mb-8 mx-auto"
           />
           <div className="text-[13vw] sm:text-[60px] leading-[0.88] font-bold tracking-[-0.035em] mix-blend-multiply">
             {studio.name}
           </div>
-          <div className="flex justify-between items-end mt-5 text-[11px] sm:text-[13px] font-bold tracking-[0.16em] uppercase text-olive">
-            <div>{studio.recruitmentLine}</div>
+          <div className="mt-5 text-[11px] sm:text-[13px] font-bold tracking-[0.16em] uppercase text-olive">
+            {studio.recruitmentLine}
           </div>
         </div>
       </div>
 
       {/* Who we are */}
-      <div className="px-6 sm:px-10 py-16 sm:py-24 max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-[1.35fr_1fr] gap-12 md:gap-16">
-        <div>
-          <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-muted mb-7">
-            Who we are
+      <div className="px-6 sm:px-10 py-16 sm:py-24 max-w-[900px] mx-auto">
+        <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-muted mb-7">
+          Who we are
+        </div>
+        <div className="grid gap-5 text-base leading-relaxed text-body text-pretty">
+          {studio.intro.map((p) => (
+            <p key={p} className="m-0">
+              {p}
+            </p>
+          ))}
+        </div>
+
+        <div className="bg-sage-pale p-8 mt-10 sm:mt-12">
+          <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-olive mb-4">
+            Where we're going
           </div>
-          <div className="grid gap-5 text-base leading-relaxed text-body max-w-[62ch] text-pretty">
-            {studio.intro.map((p) => (
-              <p key={p} className="m-0">
-                {p}
-              </p>
+          <div className="grid gap-3.5 text-[15px] leading-relaxed text-sage-deep">
+            {studio.currently.map((item, i) => (
+              <div key={i}>
+                {item.strong && <strong className="font-bold">{item.strong}</strong>}
+                {item.rest}
+              </div>
             ))}
           </div>
-
-          <a
-            href="#apply"
-            className="mt-9 inline-flex items-center gap-3 px-6 py-4 bg-ink text-bone! text-xs font-bold tracking-[0.16em] uppercase no-underline hover:no-underline cursor-pointer hover:bg-olive transition-colors"
-          >
-            <span>Join the team</span>
-            <span aria-hidden="true">↘</span>
-          </a>
         </div>
 
-        <div className="grid gap-6 content-start">
-          <div className="bg-sage-pale p-8 -mt-8">
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-olive mb-4">
-              Where we're going
-            </div>
-            <div className="grid gap-3.5 text-[15px] leading-relaxed text-sage-deep">
-              {studio.currently.map((item, i) => (
-                <div key={i}>
-                  {item.strong && <strong className="font-bold">{item.strong}</strong>}
-                  {item.rest}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <a
+          href="#apply"
+          className="mt-9 inline-flex items-center gap-3 px-6 py-4 bg-ink text-bone! text-xs font-bold tracking-[0.16em] uppercase no-underline hover:no-underline cursor-pointer hover:bg-olive transition-colors"
+        >
+          <span>Join the team</span>
+          <span aria-hidden="true">↘</span>
+        </a>
       </div>
 
       {/* Team Captains */}
-      <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[1440px] mx-auto">
-        
+      <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[900px] mx-auto">
         <ScrollReveal>
-          <div className="text-center text-[clamp(18px,2.4vw,30px)] leading-none font-bold tracking-[-0.01em] -mt-5">
+          <div className="text-center text-[clamp(18px,2.4vw,30px)] leading-none font-bold tracking-[-0.01em]">
             Captains
           </div>
         </ScrollReveal>
-        
 
-        <div className="mt-12 sm:mt-14 flex flex-col sm:flex-row items-center sm:items-start justify-center gap-10 sm:gap-6 lg:gap-10">
+        <div className="mt-12 sm:mt-14 flex flex-col sm:flex-row items-center sm:items-start justify-center gap-10 sm:gap-6">
           {studio.captains.map((c, i) => (
             <ScrollReveal
               key={c.name}

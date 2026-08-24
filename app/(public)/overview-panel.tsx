@@ -92,9 +92,4 @@ const faqItems = [
     trigger: "Is it accessible?",
     content: "Yes. It adheres to the WAI-ARIA design pattern.",
   },
-  {
-    value: "item-4",
-    trigger: "Is it accessible?",
-    content: "Yes. It adheres to the WAI-ARIA design pattern.",
-  },
 ];

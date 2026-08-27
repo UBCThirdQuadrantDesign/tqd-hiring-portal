@@ -24,7 +24,7 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
 
       {application.overview.map((section) => (
         <div key={section.heading}>
-          <div className="text-[22px] font-bold tracking-[-0.015em]">{section.heading}</div>
+          <div className="text-[28px] font-bold tracking-[-0.015em]">{section.heading}</div>
 
           {section.paragraphs.length > 0 && (
             <div className="grid gap-5 mt-5 text-base leading-relaxed text-body max-w-[62ch] text-pretty">
@@ -32,6 +32,28 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
                 <p key={p} className="m-0">
                   {p}
                 </p>
+              ))}
+            </div>
+          )}
+
+          {section.groups.length > 0 && (
+            <div className="grid gap-6 mt-5 max-w-[62ch] text-pretty">
+              {section.groups.map((group) => (
+                <div key={group.title}>
+                  <div className="text-base font-bold leading-relaxed text-olive">
+                    {group.title}
+                    {"hours" in group && group.hours && (
+                      <span className="ml-2 text-[12px] font-normal text-muted">
+                        ({group.hours})
+                      </span>
+                    )}
+                  </div>
+                  <ul className="grid gap-2 mt-2 list-disc pl-5 text-[15px] leading-relaxed text-body">
+                    {group.bullets.map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
+                </div>
               ))}
             </div>
           )}
@@ -48,7 +70,7 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
 
       {/* FAQ */}
       <div>
-          <div className="text-[22px] leading-none font-extrabold tracking-[-0.03em] mb-3">
+          <div className="text-[28px] leading-none font-extrabold tracking-[-0.03em] mb-3">
             FAQ
           </div>
 
@@ -80,16 +102,16 @@ const faqItems = [
   {
     value: "item-1",
     trigger: "Will there be an info session?",
-    content: "Yes. Maybe. I don't know.",
+    content: "Yes - Location TBD...",
   },
   {
     value: "item-2",
     trigger: "Are late submissions accepted?",
-    content: "Email ubcthirdquadrantdesign@gmail.com for any issues.",
+    content: "Email ubcthirdquadrantdesign@gmail.com!",
   },
   {
     value: "item-3",
-    trigger: "Is it accessible?",
-    content: "Yes. It adheres to the WAI-ARIA design pattern.",
+    trigger: "Help! I don't know which team to pick :(",
+    content: "Apply for our Discovery team. You'll have the chance to play different roles and find your interest.",
   },
 ];

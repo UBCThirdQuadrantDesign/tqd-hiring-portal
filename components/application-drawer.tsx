@@ -216,6 +216,11 @@ export function ApplicationDrawer({
   const resume = attachments.find((a) => a.kind === "resume");
   const portfolio = attachments.find((a) => a.kind === "portfolio");
 
+  const files: { label: string; file?: Attachment; empty: string }[] = [
+    { label: "Résumé", file: resume, empty: "No file — contact the applicant" },
+    { label: "Portfolio", file: portfolio, empty: "None submitted — optional" },
+  ];
+
   const fields: { label: string; value: string }[] = [
     { label: "Email", value: application.email },
     { label: "Faculty", value: application.faculty },
@@ -303,30 +308,28 @@ export function ApplicationDrawer({
               <div className="text-sm leading-snug break-words">{f.value}</div>
             </div>
           ))}
-          <div className="grid grid-cols-[120px_1fr] gap-5 py-3.5 border-b border-rule-faint">
-            <div className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted">Résumé</div>
-            <div className="text-sm">
-              {resume ? (
-                <a href={attachmentHref(resume.id)} target="_blank" rel="noreferrer">
-                  {resume.filename}
-                </a>
-              ) : (
-                "—"
-              )}
+          {files.map((f) => (
+            <div
+              key={f.label}
+              className="grid grid-cols-[120px_1fr] gap-5 py-3.5 border-b border-rule-faint"
+            >
+              <div className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted">
+                {f.label}
+              </div>
+              <div className="text-sm">
+                {f.file ? (
+                  <a href={attachmentHref(f.file.id)} target="_blank" rel="noreferrer">
+                    {f.file.filename}
+                  </a>
+                ) : (
+                  // Spelled out rather than an em dash: with the portfolio now
+                  // optional, a blank row is ambiguous between "chose not to
+                  // attach one" and "something went wrong".
+                  <span className="italic text-muted">{f.empty}</span>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-[120px_1fr] gap-5 py-3.5 border-b border-rule-faint">
-            <div className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted">Portfolio</div>
-            <div className="text-sm">
-              {portfolio ? (
-                <a href={attachmentHref(portfolio.id)} target="_blank" rel="noreferrer">
-                  {portfolio.filename}
-                </a>
-              ) : (
-                "—"
-              )}
-            </div>
-          </div>
+          ))}
         </div>
 
         <div>

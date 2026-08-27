@@ -9,6 +9,39 @@ import { ApplySection } from "./apply-section";
 const CAPTAIN_ROTATIONS = [-3, 0, 3];
 const CAPTAIN_OFFSETS = ["sm:-mt-3", "sm:mt-1", "sm:mt-0"];
 
+type IntroHighlight = { text: string; bold?: boolean; href?: string };
+
+const INTRO_HIGHLIGHTS: IntroHighlight[] = [
+  { text: "carbon-negative buildings", bold: true },
+  { text: "Third Space Commons", href: "https://www.thirdquadrantdesign.com/third-space" },
+];
+
+function renderIntroParagraph(p: string): React.ReactNode {
+  const match = INTRO_HIGHLIGHTS.map((h) => ({ ...h, idx: p.indexOf(h.text) }))
+    .filter((h) => h.idx !== -1)
+    .sort((a, b) => a.idx - b.idx)[0];
+
+  if (!match) return p;
+
+  const before = p.slice(0, match.idx);
+  const after = p.slice(match.idx + match.text.length);
+  const node = match.href ? (
+    <a href={match.href} className="underline!">
+      {match.text}
+    </a>
+  ) : (
+    <strong className="font-bold">{match.text}</strong>
+  );
+
+  return (
+    <>
+      {before}
+      {node}
+      {renderIntroParagraph(after)}
+    </>
+  );
+}
+
 export default function HomePage() {
   return (
     <div id="top" className="min-h-screen bg-bone text-ink">
@@ -40,12 +73,12 @@ export default function HomePage() {
         <div className="grid gap-5 text-base leading-relaxed text-body text-pretty">
           {studio.intro.map((p) => (
             <p key={p} className="m-0">
-              {p}
+              {renderIntroParagraph(p)}
             </p>
           ))}
         </div>
 
-        <div className="bg-sage-pale p-8 mt-10 sm:mt-12">
+        <div className="bg-sage-pale -mx-3 sm:-mx-5 px-3 sm:px-5 py-8 sm:py-8 mt-10 sm:mt-12">
           <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-olive mb-4">
             Where we're going
           </div>
@@ -53,7 +86,14 @@ export default function HomePage() {
             {studio.currently.map((item, i) => (
               <div key={i}>
                 {item.strong && <strong className="font-bold">{item.strong}</strong>}
-                {item.rest}
+                {"rest" in item && item.rest}
+                {"bullets" in item && (
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    {item.bullets.map((bullet, j) => (
+                      <li key={j}>{bullet}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>

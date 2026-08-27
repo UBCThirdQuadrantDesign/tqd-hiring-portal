@@ -14,8 +14,9 @@
  */
 
 export const SUBTEAMS = [
+  "Team Lead",
   "Architecture",
-  "Engineering Science",
+  "Engineering",
   "Discovery",
   "Marketing/Outreach",
 ] as const;
@@ -78,7 +79,7 @@ export const application = {
   closesAt: "2026-09-13T23:59:00-07:00",
   closesLabel: "September 13",
   meta: [
-    { label: "Commitment", value: "6–10 hrs / week" },
+    /*{label: "Commitment", value: "6–10 hrs / week"},*/
     { label: "Closes", value: "Sunday, September 13, 11:59 PM" },
   ],
   subteams: SUBTEAMS,
@@ -86,30 +87,68 @@ export const application = {
   overview: [
     {
       heading: "Roles",
-      paragraphs: [
-        "We are hiring for:",
-        "From 2019–2025, we competed in the U.S. Department of Energy Solar Decathlon® Design Challenge collegiate competition and went undefeated with our 2020 and 2021 submissions.",
-      ],
+      paragraphs: [],
       bullets: [],
+      // Each group renders as a role name with its responsibilities beneath it.
+      groups: [
+        {
+          title: "Team Leads",
+          hours: "6-10 hours a week",
+          bullets: [
+            "Set the direction for a subteam and keep the project on schedule.",
+            "Run weekly check-ins and unblock members.",
+          ],
+        },
+        {
+          title: "Architecture",
+          hours: "4-6 hours a week",
+          bullets: [
+            "Translate concepts into drawings, models, and spatial plans.",
+          ],
+        },
+        {
+          title: "Engineering",
+          hours: "4-6 hours a week",
+          bullets: [
+            "Civil Engineering, Building Science, or Electrical Engineering."
+          ],
+        },
+        {
+          title: "Marketing and Outreach",
+          hours: "5-6 hours a week",
+          bullets: [
+            "Project feasibility, social media and our main connection with the professional world.",
+          ],
+        },
+        {
+          title: "Discovery",
+          hours: "3-5 hours a week",
+          bullets: [
+            "Rotate across different teams and find the best role for you.",
+          ],
+        },
+      ],
     },
     {
-      heading: "What you'll do",
+      heading: "Who you are",
       paragraphs: [],
+      groups: [],
       bullets: [
-        "Work inside one of four sub-teams — Architecture, Engineering Science, Discovery, or Marketing/Outreach.",
-        "Contribute to Vancouver Special 2.0, our Solar Decathlon submission now in design development.",
-        "Learn the tools the team runs on, from modelling and energy analysis to fabrication and storytelling.",
-        "Commit roughly 6–10 hours a week across the 2026–27 academic year.",
+        "Anybody! Regardless of what you're studying or what year you're in, if you think you are a good fit, we encourage you to apply.",
+        "Willing to learn. We'll pick up new skills together!",
+        "Ready to have fun. We are a STUDENT design team. If you're not having fun, you're not doing it right.",
       ],
     },
     {
       heading: "How we review",
+      groups: [],
       paragraphs: [
-        "We read every submission, then invite a shortlist to a thirty‑minute conversation in the studio. Offers go out after interviews close. Portfolios matter more than grades; a sketchbook page counts.",
+        "We read submissions on a rolling basis, and invite candidates to a short virtual meeting. Keep an eye on your inbox.",
       ],
       bullets: [],
     },
   ],
+  
   questions: [
     {
       id: "full_name",
@@ -192,7 +231,7 @@ export const application = {
       label: "Portfolio",
       accept: ["application/pdf", "image/png"],
       maxSize: 10_000_000,
-      required: true,
+      required: false,
       column: false,
     },
   ],
@@ -207,6 +246,13 @@ export const application = {
     heading: string;
     paragraphs: readonly string[];
     bullets: readonly string[];
+    /** Named sub-blocks (e.g. one per role) rendered as a title + its own bullets. */
+    groups: readonly {
+      title: string;
+      /** Time commitment, rendered as small de-emphasized text beside the title. */
+      hours?: string;
+      bullets: readonly string[];
+    }[];
   }[];
   questions: readonly QuestionField[];
 };

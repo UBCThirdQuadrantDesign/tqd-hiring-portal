@@ -47,11 +47,14 @@ export async function submitApplication(
 
   const admin = createAdminClient();
 
-  // Verify both uploaded objects actually exist before writing anything —
+  // Verify each uploaded object actually exists before writing anything —
   // `resume_path` / `portfolio_path` are otherwise trusted client input.
+  // The portfolio is optional, so an empty path just means no attachment.
   const attachmentInputs = [
     { kind: "resume", path: resume_path, field: "resume_path" },
-    { kind: "portfolio", path: portfolio_path, field: "portfolio_path" },
+    ...(portfolio_path
+      ? [{ kind: "portfolio", path: portfolio_path, field: "portfolio_path" }]
+      : []),
   ];
 
   const attachments: {

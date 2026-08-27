@@ -139,11 +139,24 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
     backgroundSize: "12px 8px",
   };
 
+  // The portfolio is optional, so only an upload still in flight blocks
+  // submission — leaving it empty (or failed and removed) is fine.
   const canSubmit =
-    resume.state.status === "done" && portfolio.state.status === "done" && !pending;
+    resume.state.status === "done" && portfolio.state.status !== "uploading" && !pending;
 
   return (
     <form ref={formRef} id={formId} action={formAction} noValidate className="grid gap-11 w-full">
+      {application.meta
+        .filter((m) => m.label === "Closes")
+        .map((m) => (
+          <div key={m.label}>
+            <div className="text-[10px] font-bold tracking-[0.18em] uppercase text-muted">
+              {m.label}
+            </div>
+            <div className="mt-2 text-[15px] leading-snug">{m.value}</div>
+          </div>
+        ))}
+
       {/* honeypot — hidden from real applicants, screen readers skip via aria-hidden */}
       <div className="hidden" aria-hidden="true">
         <label>
@@ -273,11 +286,11 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
       </div>
 
       <label className="grid gap-2 content-start">
-        <span className={labelClass}>Why would you like to join TQD? What do you hope to gain from being part of the team?</span>
+        <span className={labelClass}>What is your background, and why do you want to join TQD?</span>
         <textarea
           name="why_join"
           rows={7}
-          placeholder="What drew you to this team, and what do you want to have built by next April?"
+          placeholder="e.g. who you are, relevant skills, your favourite project of ours..."
           value={fields.why_join}
           onChange={field("why_join")}
           className={inputClass}
@@ -352,6 +365,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
               onFile={portfolio.upload}
               onRemove={portfolio.reset}
               error={state.fieldErrors?.portfolio_path}
+              optional={!portfolioQ.required}
             />
           </div>
         )}

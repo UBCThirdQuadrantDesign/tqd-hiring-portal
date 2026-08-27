@@ -11,6 +11,7 @@ export function FileDropField({
   onFile,
   onRemove,
   error,
+  optional = false,
 }: {
   label: string;
   accept: readonly string[];
@@ -19,6 +20,7 @@ export function FileDropField({
   onFile: (file: File) => void;
   onRemove: () => void;
   error?: string;
+  optional?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +63,11 @@ export function FileDropField({
       <div className="flex items-baseline justify-between gap-4">
         <span className="text-xs font-bold tracking-[0.1em] uppercase text-body">
           {label}
+          {optional && (
+            <span className="ml-2 font-normal normal-case tracking-normal text-[13px] text-muted">
+              (Optional)
+            </span>
+          )}
         </span>
       </div>
       <div

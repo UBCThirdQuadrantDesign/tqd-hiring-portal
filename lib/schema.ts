@@ -36,7 +36,13 @@ export const applicationFormSchema = z.object({
   // Uploads are handled out-of-band via signed URLs (see lib/upload.ts);
   // the form only carries the resulting storage paths.
   resume_path: z.string().min(1, "Attach your résumé.").regex(UPLOAD_PATH_PATTERN, "Attach your résumé."),
-  portfolio_path: z.string().min(1, "Attach your portfolio.").regex(UPLOAD_PATH_PATTERN, "Attach your portfolio."),
+  // Portfolio is optional — an empty string means "no file attached". Any
+  // non-empty value still has to look like a real upload path.
+  portfolio_path: z
+    .string()
+    .regex(UPLOAD_PATH_PATTERN, "Re-upload your portfolio.")
+    .optional()
+    .or(z.literal("")),
   // Honeypot — must stay empty. Real applicants never see or fill this field.
   company: z.string().max(0).optional().or(z.literal("")),
 });

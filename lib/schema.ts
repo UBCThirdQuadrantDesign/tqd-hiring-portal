@@ -20,12 +20,20 @@ export const applicationFormSchema = z.object({
   faculty: z.string().trim().min(1, "Enter your faculty.").max(200),
   year: z.enum(YEARS, { message: "Choose a year." }),
   subteam: z.enum(SUBTEAMS, { message: "Choose a sub-team." }),
+  // The word cap is the applicant-facing limit; the character cap is the
+  // one that matters for an anon-writable endpoint, since 250 "words" can
+  // still be megabytes. Sized to comfortably clear 250 normal words.
   why_join: z
     .string()
     .trim()
     .min(1, "Tell us why you'd like to join.")
+    .max(4000, "Please keep it to 250 words or fewer.")
     .refine((v) => wordCount(v) <= 250, "Please keep it to 250 words or fewer."),
-  hours_per_week: z.string().trim().min(1, "Please let us know your availability."),
+  hours_per_week: z
+    .string()
+    .trim()
+    .min(1, "Please let us know your availability.")
+    .max(200),
   other_commitments: z
     .string()
     .trim()

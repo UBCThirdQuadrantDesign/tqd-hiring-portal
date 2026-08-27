@@ -124,6 +124,14 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
   const whyWords = useMemo(() => wordCount(fields.why_join), [fields.why_join]);
   const commitWords = useMemo(() => wordCount(fields.other_commitments), [fields.other_commitments]);
 
+  // The counter is the only thing telling someone they have overrun the limit
+  // before they submit — left muted, "300 / 250 words" reads like a progress
+  // note rather than a problem, and the first real signal is a bounced submit.
+  const counterClass = (count: number, limit: number) =>
+    count > limit
+      ? "text-[13px] font-semibold text-red-700"
+      : "text-[13px] text-muted";
+
   const inputClass =
     "px-4 py-3.5 text-base text-ink bg-surface border border-border outline-none transition-colors focus:border-olive-light focus:bg-white";
   const labelClass = "text-xs font-bold tracking-[0.1em] uppercase text-body";
@@ -296,7 +304,10 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           className={inputClass}
           aria-describedby={state.fieldErrors?.why_join ? `${formId}-why_join-error` : undefined}
         />
-        <span className="text-[13px] text-muted">{whyWords} / 250 words</span>
+        <span className={counterClass(whyWords, 250)} aria-live="polite">
+          {whyWords} / 250 words
+          {whyWords > 250 && " — over the limit"}
+        </span>
         {state.fieldErrors?.why_join && (
           <span id={`${formId}-why_join-error`} className="text-xs text-red-700">
             {state.fieldErrors.why_join}
@@ -333,7 +344,10 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           className={inputClass}
           aria-describedby={state.fieldErrors?.other_commitments ? `${formId}-other_commitments-error` : undefined}
         />
-        <span className="text-[13px] text-muted">{commitWords} / 150 words</span>
+        <span className={counterClass(commitWords, 150)} aria-live="polite">
+          {commitWords} / 150 words
+          {commitWords > 150 && " — over the limit"}
+        </span>
         {state.fieldErrors?.other_commitments && (
           <span id={`${formId}-other_commitments-error`} className="text-xs text-red-700">
             {state.fieldErrors.other_commitments}

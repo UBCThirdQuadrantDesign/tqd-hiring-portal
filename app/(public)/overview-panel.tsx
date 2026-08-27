@@ -24,7 +24,7 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
 
       {application.overview.map((section) => (
         <div key={section.heading}>
-          <div className="text-[28px] font-bold tracking-[-0.015em]">{section.heading}</div>
+          <h2 className="text-[28px] font-bold tracking-[-0.015em]">{section.heading}</h2>
 
           {section.paragraphs.length > 0 && (
             <div className="grid gap-5 mt-5 text-base leading-relaxed text-body max-w-[62ch] text-pretty">
@@ -70,9 +70,9 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
 
       {/* FAQ */}
       <div>
-          <div className="text-[28px] leading-none font-extrabold tracking-[-0.03em] mb-3">
+          <h2 className="text-[28px] leading-none font-extrabold tracking-[-0.03em] mb-3">
             FAQ
-          </div>
+          </h2>
 
           <Accordion multiple defaultValue={["item-1"]} className="w-full">
             {faqItems.map((item) => (

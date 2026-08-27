@@ -56,9 +56,9 @@ export default function HomePage() {
             priority
             className="h-12 sm:h-14 w-auto mb-8 mx-auto"
           />
-          <div className="text-[13vw] sm:text-[60px] leading-[0.88] font-bold tracking-[-0.035em] mix-blend-multiply">
+          <h1 className="text-[13vw] sm:text-[60px] leading-[0.88] font-bold tracking-[-0.035em] mix-blend-multiply">
             {studio.name}
-          </div>
+          </h1>
           <div className="mt-5 text-[11px] sm:text-[13px] font-bold tracking-[0.16em] uppercase text-olive">
             {studio.recruitmentLine}
           </div>
@@ -111,9 +111,9 @@ export default function HomePage() {
       {/* Team Captains */}
       <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[900px] mx-auto">
         <ScrollReveal>
-          <div className="text-center text-[clamp(18px,2.4vw,30px)] leading-none font-bold tracking-[-0.01em]">
+          <h2 className="text-center text-[clamp(18px,2.4vw,30px)] leading-none font-bold tracking-[-0.01em]">
             Captains
-          </div>
+          </h2>
         </ScrollReveal>
 
         <div className="mt-12 sm:mt-14 flex flex-col sm:flex-row items-center sm:items-start justify-center gap-10 sm:gap-6">
@@ -133,9 +133,9 @@ export default function HomePage() {
       <div className="px-6 sm:px-10 pb-16 sm:pb-24 max-w-[1440px] mx-auto mt-10">
         <div className="flex justify-between items-end gap-10 py-7">
           <ScrollReveal>
-            <div className="text-[clamp(28px,3.2vw,48px)] leading-none font-extrabold tracking-[-0.03em]">
+            <h2 className="text-[clamp(28px,3.2vw,48px)] leading-none font-extrabold tracking-[-0.03em]">
               Selected Works
-            </div>
+            </h2>
           </ScrollReveal>
         </div>
 

@@ -5,7 +5,7 @@ export const studio = {
   recruitmentLine: "CLOSES Sunday, Sept 13th, 11:59PM",
   intro: [
     "Third Quadrant Design (TQD) strives to address our changing climactic conditions by designing carbon-negative buildings through sustainable design principles. Our multidisciplinary approach allows us to choose different projects each year and find creative solutions for complex issues.",
-    "From 2019-2025, we competed in the U.S. Department of Energy Solar Decathlon® Design Challenge and went undefeated with our 2020 and 2021 submissions. For our 2023 submission, TQD designed and built Third Space Commons on the UBC Vancouver campus with help from many partners, including DIALOG and Ledcor Consuction. In 2026, we are starting a new chapter."
+    "From 2019-2025, we competed in the U.S. Department of Energy Solar Decathlon® Design Challenge and went undefeated with our 2020 and 2021 submissions. For our 2023 submission, TQD designed and built Third Space Commons on the UBC Vancouver campus with help from many partners, including DIALOG and Ledcor Consuction. In 2026, we are starting a new chapter separate from the Solar Decathlon."
   ],
   currently: [
     {

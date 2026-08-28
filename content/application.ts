@@ -96,7 +96,7 @@ export const application = {
           hours: "6-10 hours a week",
           bullets: [
             "Set the direction for a subteam and keep the project on schedule.",
-            "Run weekly check-ins and sguide members to completing deliverables.",
+            "Run weekly check-ins and guide members to completing deliverables.",
           ],
         },
         {

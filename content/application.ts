@@ -222,7 +222,7 @@ export const application = {
       id: "other_commitments",
       type: "longtext",
       label: "What other commitments/hobbies do you have?",
-      placeholder: "Clubs, jobs, sports, whatever else fills the week.",
+      placeholder: "Clubs, jobs, sports, or whatever else fills the week",
       maxWords: 150,
       required: false,
       column: false,

@@ -204,8 +204,8 @@ export const application = {
     {
       id: "skills",
       type: "longtext",
-      label: "What experiences do you have that will help you succeed in the role you are applying for?",
-      placeholder: "e.g. similar experiences, projects, passion...",
+      label: "What experiences do you have that will help you succeed?",
+      placeholder: "e.g. similar experiences, side quests, projects, passion...",
       maxWords: 250,
       required: true,
       column: false,

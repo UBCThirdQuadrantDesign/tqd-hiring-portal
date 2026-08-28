@@ -138,7 +138,7 @@ export const application = {
         "Anybody! Regardless of what you're studying or what year you're in, if you think you're a good fit, we encourage you to apply.",
         "Reliable, eager to take initiative and can come up with creative solutions.",
         "Willing to learn. We'll pick up new skills together!",
-        "Ready to have fun. We are a STUDENT design team. If you're not having fun, you're not doing it right.",
+        "Ready to have fun. We are a STUDENT design team. If you're not having fun, you're not doing it right!",
       ],
     },
     {

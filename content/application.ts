@@ -214,7 +214,7 @@ export const application = {
       id: "hours_per_week",
       type: "text",
       label: "How many hours can you dedicate per week?",
-      placeholder: "e.g. 6–10 hrs",
+      placeholder: "e.g. 6–7 hrs",
       required: true,
       column: false,
     },

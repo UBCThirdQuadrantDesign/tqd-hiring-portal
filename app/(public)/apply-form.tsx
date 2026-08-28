@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { nanoid } from "nanoid";
 import { submitApplication, type SubmitState } from "./actions";
-import { application } from "@/content/application";
+import { application, question } from "@/content/application";
 import { useFileUpload } from "@/lib/use-file-upload";
 import { FileDropField } from "@/components/file-drop-field";
 
@@ -17,6 +17,7 @@ type DraftFields = {
   year: string;
   subteam: string;
   why_join: string;
+  skills: string;
   hours_per_week: string;
   other_commitments: string;
 };
@@ -28,6 +29,7 @@ const emptyDraft: DraftFields = {
   year: "",
   subteam: "",
   why_join: "",
+  skills: "",
   hours_per_week: "",
   other_commitments: "",
 };
@@ -117,11 +119,22 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
   const field = (k: keyof DraftFields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setFields((f) => ({ ...f, [k]: e.target.value }));
 
-  const yearQ = application.questions.find((q) => q.id === "year");
-  const subteamQ = application.questions.find((q) => q.id === "subteam");
-  const resumeQ = application.questions.find((q) => q.id === "resume");
-  const portfolioQ = application.questions.find((q) => q.id === "portfolio");
+  // All label/placeholder/limit copy comes from content/application.ts so the
+  // form can't drift from the source of truth (and from the Zod schema, which
+  // reads the same word caps).
+  const nameQ = question("full_name");
+  const emailQ = question("email");
+  const facultyQ = question("faculty");
+  const yearQ = question("year");
+  const subteamQ = question("subteam");
+  const whyQ = question("why_join");
+  const skillsQ = question("skills");
+  const hoursQ = question("hours_per_week");
+  const commitQ = question("other_commitments");
+  const resumeQ = question("resume");
+  const portfolioQ = question("portfolio");
   const whyWords = useMemo(() => wordCount(fields.why_join), [fields.why_join]);
+  const skillsWords = useMemo(() => wordCount(fields.skills), [fields.skills]);
   const commitWords = useMemo(() => wordCount(fields.other_commitments), [fields.other_commitments]);
 
   // The counter is the only thing telling someone they have overrun the limit
@@ -147,10 +160,14 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
     backgroundSize: "12px 8px",
   };
 
-  // The portfolio is optional, so only an upload still in flight blocks
-  // submission — leaving it empty (or failed and removed) is fine.
+  // A required upload has to have finished; an optional one only blocks while
+  // it is still in flight (leaving it empty, or failed and removed, is fine).
+  const uploadReady = (status: string, required: boolean) =>
+    required ? status === "done" : status !== "uploading";
   const canSubmit =
-    resume.state.status === "done" && portfolio.state.status !== "uploading" && !pending;
+    uploadReady(resume.state.status, resumeQ.required) &&
+    uploadReady(portfolio.state.status, portfolioQ.required) &&
+    !pending;
 
   return (
     <form ref={formRef} id={formId} action={formAction} noValidate className="grid gap-11 w-full">
@@ -181,11 +198,11 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
 
       <div className="grid gap-[22px]">
         <label className="grid gap-2 content-start">
-          <span className={labelClass}>Full name</span>
+          <span className={labelClass}>{nameQ.label}</span>
           <input
             name="full_name"
             type="text"
-            placeholder="First Last"
+            placeholder={nameQ.placeholder}
             value={fields.full_name}
             onChange={field("full_name")}
             className={inputClass}
@@ -200,11 +217,11 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-[22px]">
           <label className="grid gap-2 content-start">
-            <span className={labelClass}>Email</span>
+            <span className={labelClass}>{emailQ.label}</span>
             <input
               name="email"
               type="email"
-              placeholder="you@anything.ca"
+              placeholder={emailQ.placeholder}
               value={fields.email}
               onChange={field("email")}
               className={inputClass}
@@ -217,11 +234,11 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
             )}
           </label>
           <label className="grid gap-2 content-start">
-            <span className={labelClass}>Faculty</span>
+            <span className={labelClass}>{facultyQ.label}</span>
             <input
               name="faculty"
               type="text"
-              placeholder="e.g. Civil Engineering, SALA"
+              placeholder={facultyQ.placeholder}
               value={fields.faculty}
               onChange={field("faculty")}
               className={inputClass}
@@ -238,7 +255,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-[22px]">
         <label className="grid gap-2 content-start">
-          <span className={labelClass}>Year</span>
+          <span className={labelClass}>{yearQ.label}</span>
           <select
             name="year"
             value={fields.year}
@@ -251,12 +268,11 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
             <option value="" disabled>
               Choose one
             </option>
-            {yearQ && yearQ.type === "select" &&
-              yearQ.options.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
+            {yearQ.options.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
           </select>
           {state.fieldErrors?.year && (
             <span id={`${formId}-year-error`} className="text-xs text-red-700">
@@ -265,7 +281,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
           )}
         </label>
         <label className="grid gap-2 content-start">
-          <span className={labelClass}>Sub-team interest</span>
+          <span className={labelClass}>{subteamQ.label}</span>
           <select
             name="subteam"
             value={fields.subteam}
@@ -278,12 +294,11 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
             <option value="" disabled>
               Choose one
             </option>
-            {subteamQ && subteamQ.type === "select" &&
-              subteamQ.options.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
+            {subteamQ.options.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
           </select>
           {state.fieldErrors?.subteam && (
             <span id={`${formId}-subteam-error`} className="text-xs text-red-700">
@@ -294,19 +309,19 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
       </div>
 
       <label className="grid gap-2 content-start">
-        <span className={labelClass}>What is your background, and why do you want to join TQD?</span>
+        <span className={labelClass}>{whyQ.label}</span>
         <textarea
           name="why_join"
           rows={7}
-          placeholder="e.g. who you are, relevant skills, your favourite project of ours..."
+          placeholder={whyQ.placeholder}
           value={fields.why_join}
           onChange={field("why_join")}
           className={inputClass}
           aria-describedby={state.fieldErrors?.why_join ? `${formId}-why_join-error` : undefined}
         />
-        <span className={counterClass(whyWords, 250)} aria-live="polite">
-          {whyWords} / 250 words
-          {whyWords > 250 && " — over the limit"}
+        <span className={counterClass(whyWords, whyQ.maxWords)} aria-live="polite">
+          {whyWords} / {whyQ.maxWords} words
+          {whyWords > whyQ.maxWords && " — over the limit"}
         </span>
         {state.fieldErrors?.why_join && (
           <span id={`${formId}-why_join-error`} className="text-xs text-red-700">
@@ -316,11 +331,33 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
       </label>
 
       <label className="grid gap-2 content-start">
-        <span className={labelClass}>How many hours can you dedicate per week?</span>
+        <span className={labelClass}>{skillsQ.label}</span>
+        <textarea
+          name="skills"
+          rows={7}
+          placeholder={skillsQ.placeholder}
+          value={fields.skills}
+          onChange={field("skills")}
+          className={inputClass}
+          aria-describedby={state.fieldErrors?.skills ? `${formId}-skills-error` : undefined}
+        />
+        <span className={counterClass(skillsWords, skillsQ.maxWords)} aria-live="polite">
+          {skillsWords} / {skillsQ.maxWords} words
+          {skillsWords > skillsQ.maxWords && " — over the limit"}
+        </span>
+        {state.fieldErrors?.skills && (
+          <span id={`${formId}-skills-error`} className="text-xs text-red-700">
+            {state.fieldErrors.skills}
+          </span>
+        )}
+      </label>
+
+      <label className="grid gap-2 content-start">
+        <span className={labelClass}>{hoursQ.label}</span>
         <input
           name="hours_per_week"
           type="text"
-          placeholder="e.g. 6–10 hrs"
+          placeholder={hoursQ.placeholder}
           value={fields.hours_per_week}
           onChange={field("hours_per_week")}
           className={inputClass}
@@ -334,19 +371,19 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
       </label>
 
       <label className="grid gap-2 content-start">
-        <span className={labelClass}>What other commitments/hobbies do you have?</span>
+        <span className={labelClass}>{commitQ.label}</span>
         <textarea
           name="other_commitments"
           rows={4}
-          placeholder="Clubs, jobs, sports, or anything that interests you!"
+          placeholder={commitQ.placeholder}
           value={fields.other_commitments}
           onChange={field("other_commitments")}
           className={inputClass}
           aria-describedby={state.fieldErrors?.other_commitments ? `${formId}-other_commitments-error` : undefined}
         />
-        <span className={counterClass(commitWords, 150)} aria-live="polite">
-          {commitWords} / 150 words
-          {commitWords > 150 && " — over the limit"}
+        <span className={counterClass(commitWords, commitQ.maxWords)} aria-live="polite">
+          {commitWords} / {commitQ.maxWords} words
+          {commitWords > commitQ.maxWords && " — over the limit"}
         </span>
         {state.fieldErrors?.other_commitments && (
           <span id={`${formId}-other_commitments-error`} className="text-xs text-red-700">
@@ -356,33 +393,30 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
       </label>
 
       <div className="grid gap-6">
-        {resumeQ && resumeQ.type === "file" && (
-          <div data-field-anchor="resume_path">
-            <FileDropField
-              label={resumeQ.label}
-              accept={resumeQ.accept}
-              maxSize={resumeQ.maxSize}
-              state={resume.state}
-              onFile={resume.upload}
-              onRemove={resume.reset}
-              error={state.fieldErrors?.resume_path}
-            />
-          </div>
-        )}
-        {portfolioQ && portfolioQ.type === "file" && (
-          <div data-field-anchor="portfolio_path">
-            <FileDropField
-              label={portfolioQ.label}
-              accept={portfolioQ.accept}
-              maxSize={portfolioQ.maxSize}
-              state={portfolio.state}
-              onFile={portfolio.upload}
-              onRemove={portfolio.reset}
-              error={state.fieldErrors?.portfolio_path}
-              optional={!portfolioQ.required}
-            />
-          </div>
-        )}
+        <div data-field-anchor="resume_path">
+          <FileDropField
+            label={resumeQ.label}
+            accept={resumeQ.accept}
+            maxSize={resumeQ.maxSize}
+            state={resume.state}
+            onFile={resume.upload}
+            onRemove={resume.reset}
+            error={state.fieldErrors?.resume_path}
+            optional={!resumeQ.required}
+          />
+        </div>
+        <div data-field-anchor="portfolio_path">
+          <FileDropField
+            label={portfolioQ.label}
+            accept={portfolioQ.accept}
+            maxSize={portfolioQ.maxSize}
+            state={portfolio.state}
+            onFile={portfolio.upload}
+            onRemove={portfolio.reset}
+            error={state.fieldErrors?.portfolio_path}
+            optional={!portfolioQ.required}
+          />
+        </div>
         <input type="hidden" name="resume_path" value={resume.state.path ?? ""} />
         <input type="hidden" name="portfolio_path" value={portfolio.state.path ?? ""} />
       </div>

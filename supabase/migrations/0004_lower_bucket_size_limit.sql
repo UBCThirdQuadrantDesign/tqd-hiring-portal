@@ -1,5 +1,9 @@
 -- Lower the `applications` bucket cap from 50MB to 10MB.
 --
+-- SUPERSEDED by 0009, which raises the cap to 20MB for portfolios. The
+-- free-tier math below reflects the 10MB era; read 0009 for the current
+-- reasoning.
+--
 -- 0002 creates the bucket with `on conflict (id) do nothing`, so editing the
 -- limit there only affects a fresh project — an existing bucket keeps the old
 -- 50MB. This migration updates it in place.

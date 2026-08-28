@@ -55,7 +55,7 @@ export type QuestionField =
       column: true;
     }
   | {
-      id: "why_join" | "other_commitments" | "hours_per_week";
+      id: "why_join" | "skills" | "other_commitments" | "hours_per_week";
       type: "longtext" | "text";
       label: string;
       placeholder?: string;
@@ -92,7 +92,7 @@ export const application = {
       // Each group renders as a role name with its responsibilities beneath it.
       groups: [
         {
-          title: "Team Leads",
+          title: "Team Lead",
           hours: "6-10 hours a week",
           bullets: [
             "Set the direction for a subteam and keep the project on schedule.",
@@ -101,16 +101,17 @@ export const application = {
         },
         {
           title: "Architecture",
+          subheading: "Sub-teams",
           hours: "4-6 hours a week",
           bullets: [
-            "Translate concepts into drawings, models, and spatial plans.",
+            "Translate concepts into drawings, models and spatial plans using Adobe suite, Rhino, rendering and CAD softwares.",
           ],
         },
         {
           title: "Engineering",
           hours: "4-6 hours a week",
           bullets: [
-            "Civil Engineering, Building Science, or Electrical Engineering."
+            "Looking for any engineers interested in sustainable building design: civil, mechanical, energy, building science etc."
           ],
         },
         {
@@ -124,7 +125,7 @@ export const application = {
           title: "Discovery",
           hours: "3-5 hours a week",
           bullets: [
-            "Rotate across different teams and find the best role for you.",
+            "Rotate across differrent teams as a mentee and find the best role for you. Choose your own path and pick up valuable skills that you are interested in.",
           ],
         },
       ],
@@ -134,7 +135,8 @@ export const application = {
       paragraphs: [],
       groups: [],
       bullets: [
-        "Anybody! Regardless of what you're studying or what year you're in, if you think you are a good fit, we encourage you to apply.",
+        "Anybody! Regardless of what you're studying or what year you're in, if you think you're a good fit, we encourage you to apply.",
+        "Reliable, eager to take initiative and can come up with creative solutions.",
         "Willing to learn. We'll pick up new skills together!",
         "Ready to have fun. We are a STUDENT design team. If you're not having fun, you're not doing it right.",
       ],
@@ -185,7 +187,7 @@ export const application = {
     {
       id: "subteam",
       type: "select",
-      label: "Sub-team interest",
+      label: "Role interest",
       options: SUBTEAMS,
       required: true,
       column: true,
@@ -193,8 +195,17 @@ export const application = {
     {
       id: "why_join",
       type: "longtext",
-      label: "Why would you like to join TQD? What do you hope to gain from being part of the team?",
-      placeholder: "What drew you to this team, and what do you want to have built by next April?",
+      label: "What is your background, and Why would you like to join TQD?",
+      placeholder: "e.g. who you are, what you hope to gain, your favourite project of ours...",
+      maxWords: 250,
+      required: true,
+      column: false,
+    },
+    {
+      id: "skills",
+      type: "longtext",
+      label: "What experiences do you have that will help you succeed in the role you are applying for?",
+      placeholder: "e.g. similar experiences, projects, passion...",
       maxWords: 250,
       required: true,
       column: false,
@@ -230,7 +241,7 @@ export const application = {
       type: "file",
       label: "Portfolio",
       accept: ["application/pdf", "image/png"],
-      maxSize: 10_000_000,
+      maxSize: 20_000_000,
       required: false,
       column: false,
     },
@@ -249,6 +260,8 @@ export const application = {
     /** Named sub-blocks (e.g. one per role) rendered as a title + its own bullets. */
     groups: readonly {
       title: string;
+      /** Small label rendered above this group, dividing the list into sections. */
+      subheading?: string;
       /** Time commitment, rendered as small de-emphasized text beside the title. */
       hours?: string;
       bullets: readonly string[];
@@ -258,3 +271,19 @@ export const application = {
 };
 
 export type Application = typeof application;
+
+type AnyQuestion = Application["questions"][number];
+export type QuestionId = AnyQuestion["id"];
+
+/**
+ * Look up a question by id, preserving its literal type — callers get
+ * `options` on a select, `maxSize` on a file, `maxWords` on a longtext,
+ * with no runtime `type` guard needed.
+ *
+ * Every consumer (form labels, placeholders, word caps, reviewer headings)
+ * goes through this rather than repeating the copy, so editing a question
+ * above is the only edit needed.
+ */
+export function question<Id extends QuestionId>(id: Id): Extract<AnyQuestion, { id: Id }> {
+  return application.questions.find((q) => q.id === id) as Extract<AnyQuestion, { id: Id }>;
+}

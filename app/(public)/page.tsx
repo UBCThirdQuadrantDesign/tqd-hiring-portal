@@ -78,34 +78,38 @@ export default function HomePage() {
           ))}
         </div>
 
-        <div className="bg-sage-pale -mx-3 sm:-mx-5 px-3 sm:px-5 py-8 sm:py-8 mt-10 sm:mt-12">
-          <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-olive mb-4">
-            Where we're going
+        <ScrollReveal>
+          <div className="bg-sage-pale -mx-3 sm:-mx-5 px-3 sm:px-5 py-8 sm:py-8 mt-10 sm:mt-12">
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-olive mb-4">
+              Where we're going
+            </div>
+            <div className="grid gap-3.5 text-[15px] leading-relaxed text-sage-deep">
+              {studio.currently.map((item, i) => (
+                <div key={i}>
+                  {item.strong && <strong className="font-bold">{item.strong}</strong>}
+                  {"rest" in item && item.rest}
+                  {"bullets" in item && (
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                      {item.bullets.map((bullet, j) => (
+                        <li key={j}>{bullet}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid gap-3.5 text-[15px] leading-relaxed text-sage-deep">
-            {studio.currently.map((item, i) => (
-              <div key={i}>
-                {item.strong && <strong className="font-bold">{item.strong}</strong>}
-                {"rest" in item && item.rest}
-                {"bullets" in item && (
-                  <ul className="list-disc pl-5 mt-1 space-y-1">
-                    {item.bullets.map((bullet, j) => (
-                      <li key={j}>{bullet}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        </ScrollReveal>
 
-        <a
-          href="#apply"
-          className="mt-9 inline-flex items-center gap-3 px-6 py-4 bg-ink text-bone! text-xs font-bold tracking-[0.16em] uppercase no-underline hover:no-underline cursor-pointer hover:bg-olive transition-colors"
-        >
-          <span>Join the team</span>
-          <span aria-hidden="true">↘</span>
-        </a>
+        <ScrollReveal delay={0.08} className="mt-9">
+          <a
+            href="#apply"
+            className="inline-flex items-center gap-3 px-6 py-4 bg-ink text-bone! text-xs font-bold tracking-[0.16em] uppercase no-underline hover:no-underline cursor-pointer hover:bg-olive transition-colors"
+          >
+            <span>Join the team</span>
+            <span aria-hidden="true">↘</span>
+          </a>
+        </ScrollReveal>
       </div>
 
       {/* Team Captains */}

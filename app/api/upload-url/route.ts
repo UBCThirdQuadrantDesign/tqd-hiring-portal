@@ -18,18 +18,22 @@ export async function POST(request: Request) {
   const size = body?.size as number | undefined;
   const draftId = (body?.draftId as string | undefined) || nanoid();
 
-  const question = application.questions.find(
+  const fileQuestion = application.questions.find(
     (q) => q.id === kind && q.type === "file"
   );
-  if (!question || question.type !== "file") {
+  if (!fileQuestion || fileQuestion.type !== "file") {
     return NextResponse.json({ error: "Unknown upload kind." }, { status: 400 });
   }
   if (!filename) {
     return NextResponse.json({ error: "Missing filename." }, { status: 400 });
   }
-  if (typeof size === "number" && size > question.maxSize) {
+  if (typeof size === "number" && size > fileQuestion.maxSize) {
     return NextResponse.json(
-      { error: `${question.label} must be under ${Math.round(question.maxSize / 1_000_000)}MB.` },
+      {
+        error: `${fileQuestion.label} must be under ${Math.round(
+          fileQuestion.maxSize / 1_000_000
+        )}MB.`,
+      },
       { status: 400 }
     );
   }

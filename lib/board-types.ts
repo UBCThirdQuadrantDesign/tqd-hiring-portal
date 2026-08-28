@@ -10,6 +10,9 @@ export type ApplicationRow = {
   subteam: string;
   answers: {
     why_join: string;
+    // Added mid-cycle: rows written before this question existed have no
+    // `skills` key, so readers must tolerate it being absent.
+    skills?: string;
     hours_per_week: string;
     other_commitments: string;
   };

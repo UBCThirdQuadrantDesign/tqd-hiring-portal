@@ -16,7 +16,7 @@ export const studio = {
       strong: "Learning/Doing:",
       bullets: [
       "Conceptualizing an original building design focused on uplifting socially-isolated individuals",
-      "Reseraching design/construction practices for a potential academic publication",
+      "Researching design/construction practices for a potential academic publication",
       "Creating an interactive digital walkthrough to go along with our designed space",
       "Gaining meaningful experience by working directly with architecture, engineering, and construction professionals",
       ],
@@ -32,7 +32,7 @@ export const studio = {
     {
       title: "Vancouver Special 2.0",
       year: "2024–25",
-      body: "A retrofit strategy for the city's most common house type, entered in the Solar Decathlon Design Challenge and now in design development.",
+      body: "A retrofit strategy for the city's most common house type, entered in the Solar Decathlon Design Challenge.",
       image: "/works/Vancouver-Special-2.0.png",
     },
     {
@@ -43,7 +43,7 @@ export const studio = {
     },
   ],
   captains: [
-    { name: "Emma Heris", image: "/captains/captain-1.jpg" },
+    { name: "Emma Heris", image: "/captains/emma1.jpg" },
     { name: "Spencer Sun", image: "/captains/spencer.jpg" },
     { name: "Juna Ibrahim", image: "/captains/juna1.jpg" },
   ],

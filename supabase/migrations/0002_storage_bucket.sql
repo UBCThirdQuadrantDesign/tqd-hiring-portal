@@ -19,7 +19,7 @@ values (
   'applications',
   'applications',
   false,
-  10485760, -- 10MB, matching both per-question caps in content/application.ts
+  10485760, -- superseded by 0009 (20MB); see there for the current cap
   array['application/pdf', 'image/png']
 )
 on conflict (id) do nothing;

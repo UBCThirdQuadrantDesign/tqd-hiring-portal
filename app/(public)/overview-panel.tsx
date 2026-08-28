@@ -40,6 +40,11 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
             <div className="grid gap-6 mt-5 max-w-[62ch] text-pretty">
               {section.groups.map((group) => (
                 <div key={group.title}>
+                  {"subheading" in group && group.subheading && (
+                    <div className="text-[16px] font-extrabold tracking-[0.18em] uppercase text-ink mt-2 mb-3">
+                      {group.subheading}
+                    </div>
+                  )}
                   <div className="text-base font-bold leading-relaxed text-olive">
                     {group.title}
                     {"hours" in group && group.hours && (
@@ -102,12 +107,12 @@ const faqItems = [
   {
     value: "item-1",
     trigger: "Will there be an info session?",
-    content: "Yes - Location TBD...",
+    content: "Yes - follow our instagram @ubcthirdquadrant for updates.",
   },
   {
     value: "item-2",
     trigger: "Are late submissions accepted?",
-    content: "Email ubcthirdquadrantdesign@gmail.com!",
+    content: "Submissions close on Sept 13th at 11:59pm. Email ubcthirdquadrantdesign@gmail.com for late submissions!",
   },
   {
     value: "item-3",

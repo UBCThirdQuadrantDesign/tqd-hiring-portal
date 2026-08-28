@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { STAGES, type ReviewerNote } from "@/lib/board-types";
 import type { ApplicationStage } from "@/lib/schema";
-import { application as applicationContent } from "@/content/application";
+import { application as applicationContent, question } from "@/content/application";
 import { addNote as addNoteAction } from "@/app/(review)/review/actions";
 import { useBoardStore } from "@/app/(review)/review/board-store";
 import { drawerSkeletonJustShown, useLockBodyScroll } from "@/components/drawer-shell";
@@ -42,6 +42,9 @@ type ApplicationDetail = {
   created_at: string;
   answers: {
     why_join: string;
+    // Optional: see the note in lib/board-types.ts — pre-existing rows
+    // predate this question.
+    skills?: string;
     hours_per_week: string;
     other_commitments: string;
   };
@@ -225,8 +228,19 @@ export function ApplicationDrawer({
     { label: "Email", value: application.email },
     { label: "Faculty", value: application.faculty },
     { label: "Year", value: application.year },
-    { label: "Sub-team", value: application.subteam },
+    { label: "Role", value: application.subteam },
     { label: "Hours / week", value: application.answers.hours_per_week || "—" },
+  ];
+
+  // The long-form answers, in the order they were asked. Headings are kept
+  // short for scanning; the exact question wording comes from
+  // content/application.ts and rides along as the heading's tooltip. An
+  // answer missing entirely (a row submitted before its question existed)
+  // is skipped rather than rendered blank.
+  const answerSections: { id: "why_join" | "skills" | "other_commitments"; heading: string }[] = [
+    { id: "why_join", heading: "Background & why TQD" },
+    { id: "skills", heading: "Relevant experience" },
+    { id: "other_commitments", heading: "Other commitments" },
   ];
 
   const wrapperClass =
@@ -332,25 +346,23 @@ export function ApplicationDrawer({
           ))}
         </div>
 
-        <div>
-          <div className="text-[10px] font-bold tracking-[0.18em] uppercase text-muted mb-3">
-            Why Third Quadrant?
-          </div>
-          <div className="bg-surface border border-rule-soft p-5 text-[15px] leading-relaxed text-body text-pretty">
-            {application.answers.why_join}
-          </div>
-        </div>
-
-        {application.answers.other_commitments && (
-          <div>
-            <div className="text-[10px] font-bold tracking-[0.18em] uppercase text-muted mb-3">
-              Other commitments
+        {answerSections.map(({ id, heading }) => {
+          const value = application.answers[id];
+          if (!value) return null;
+          return (
+            <div key={id}>
+              <div
+                className="text-[10px] font-bold tracking-[0.18em] uppercase text-muted mb-3"
+                title={question(id).label}
+              >
+                {heading}
+              </div>
+              <div className="bg-surface border border-rule-soft p-5 text-[15px] leading-relaxed text-body text-pretty">
+                {value}
+              </div>
             </div>
-            <div className="bg-surface border border-rule-soft p-5 text-[15px] leading-relaxed text-body text-pretty">
-              {application.answers.other_commitments}
-            </div>
-          </div>
-        )}
+          );
+        })}
 
         <div>
           <div className="text-[10px] font-bold tracking-[0.18em] uppercase text-muted mb-3">

@@ -44,7 +44,7 @@ export const studio = {
   ],
   captains: [
     { name: "Emma Heris", image: "/captains/emma1.jpg" },
-    { name: "Spencer Sun", image: "/captains/spencer.jpg" },
+    { name: "Spencer Sun", image: "/captains/spencer2.jpg" },
     { name: "Juna Ibrahim", image: "/captains/juna1.jpg" },
   ],
   footer: {

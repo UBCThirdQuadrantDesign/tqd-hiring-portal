@@ -112,7 +112,7 @@ const faqItems = [
   {
     value: "item-2",
     trigger: "Are late submissions accepted?",
-    content: "Submissions close on Sept 13th at 11:59pm. Email ubcthirdquadrantdesign@gmail.com for late submissions!",
+    content: "Submissions close on Sept 16th at 11:59pm. Email ubcthirdquadrantdesign@gmail.com for late submissions!",
   },
   {
     value: "item-3",

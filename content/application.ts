@@ -76,11 +76,11 @@ export type QuestionField =
 export const application = {
   cycle: "2026-27",
   title: "Application",
-  closesAt: "2026-09-13T23:59:00-07:00",
-  closesLabel: "September 13",
+  closesAt: "2026-09-16T23:59:00-07:00",
+  closesLabel: "September 16",
   meta: [
     /*{label: "Commitment", value: "6–10 hrs / week"},*/
-    { label: "Closes", value: "Sunday, September 13, 11:59 PM" },
+    { label: "Closes", value: "Wednesday, September 16, 11:59 PM" },
   ],
   subteams: SUBTEAMS,
  

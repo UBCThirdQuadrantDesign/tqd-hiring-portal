@@ -107,7 +107,7 @@ const faqItems = [
   {
     value: "item-1",
     trigger: "Will there be an info session?",
-    content: "Yes - follow our instagram @ubcthirdquadrant for updates.",
+    content: "UPDATE: We are not holding an info session this year. For inquiries, email ubcthirdquadrantdesign@gmail.com!",
   },
   {
     value: "item-2",

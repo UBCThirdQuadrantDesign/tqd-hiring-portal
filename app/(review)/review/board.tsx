@@ -250,6 +250,16 @@ function CardPreview({ card }: { card: BoardCard }) {
   );
 }
 
+// accent: role label; tint: pastel card background.
+const ROLE_COLORS: Record<string, { accent: string; tint: string }> = {
+  Architecture: { accent: "#6F7C3C", tint: "#EEF2DF" },
+  Engineering: { accent: "#B3261E", tint: "#FBE6E4" },
+  Discovery: { accent: "#2F5DA8", tint: "#E3ECF9" },
+};
+// Team Lead and Marketing/Outreach keep the original olive.
+const DEFAULT_ROLE_COLOR = ROLE_COLORS.Architecture;
+const STAR_COLOR = "#E0A800";
+
 function CardBody({
   card,
   dimmed = false,
@@ -263,14 +273,18 @@ function CardBody({
   onStar: (id: string, next: boolean) => void;
   onPrefetch?: (id: string) => void;
 }) {
+  const { accent: roleColor, tint } = ROLE_COLORS[card.subteam] ?? DEFAULT_ROLE_COLOR;
+  // Transparent rather than no border, so starring doesn't shift the layout.
+  const borderColor = !dimmed && card.starred ? STAR_COLOR : "transparent";
+
   return (
     <div
       onClick={() => onOpen(card.id)}
       onPointerEnter={() => onPrefetch?.(card.id)}
-      className={`bg-surface border p-2.5 cursor-pointer hover:border-olive-light transition-colors${
+      className={`bg-surface border p-2.5 cursor-pointer transition-colors${
         dimmed ? " opacity-70" : ""
       }`}
-      style={{ borderColor: !dimmed && card.starred ? "#6F7C3C" : "#DCD9CD" }}
+      style={{ borderColor, ...(dimmed ? {} : { backgroundColor: tint }) }}
     >
       <div className="flex items-start justify-between gap-2.5">
         <div
@@ -285,7 +299,7 @@ function CardBody({
           }}
           aria-label={card.starred ? "Unstar" : "Star"}
           className="-m-1.5 p-1.5 text-[22px] leading-none cursor-pointer"
-          style={{ color: card.starred ? "#6F7C3C" : "#B9B6A9" }}
+          style={{ color: card.starred ? STAR_COLOR : "#B9B6A9" }}
         >
           {card.starred ? "★" : "☆"}
         </button>
@@ -294,9 +308,10 @@ function CardBody({
         {card.year}
       </div>
       <div
-        className={`mt-2 text-[10px] font-bold tracking-[0.08em] uppercase ${
-          dimmed ? "text-muted" : "text-olive-light"
+        className={`mt-2 text-[10px] font-bold tracking-[0.08em] uppercase${
+          dimmed ? " text-muted" : ""
         }`}
+        style={dimmed ? undefined : { color: roleColor }}
       >
         {card.subteam}
       </div>

@@ -134,7 +134,7 @@ export function Board() {
         onDragEnd={handleDragEnd}
       >
         <div
-          className="grid gap-5 mt-7 items-start"
+          className="grid gap-3 mt-7 items-start"
           style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
         >
           {columns.map((col) => (
@@ -184,14 +184,14 @@ function Column({
       }`}
     >
       <div
-        className={`flex items-center justify-between px-4 py-3.5 border-b ${
+        className={`flex items-center justify-between px-3 py-3 border-b ${
           archived ? "border-rule" : "border-rule-soft"
         }`}
       >
-        <div className="text-[11px] font-bold tracking-[0.16em] uppercase">{label}</div>
+        <div className="text-[11px] font-bold tracking-[0.12em] uppercase">{label}</div>
         <div className="text-[11px] font-bold text-muted">{items.length}</div>
       </div>
-      <div ref={setNodeRef} className="grid gap-2.5 p-3 min-h-[80px]">
+      <div ref={setNodeRef} className="grid gap-2 p-2 min-h-[80px]">
         <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
           {items.map((item) => (
             <SortableCard
@@ -267,14 +267,14 @@ function CardBody({
     <div
       onClick={() => onOpen(card.id)}
       onPointerEnter={() => onPrefetch?.(card.id)}
-      className={`bg-surface border p-3.5 cursor-pointer hover:border-olive-light transition-colors${
+      className={`bg-surface border p-2.5 cursor-pointer hover:border-olive-light transition-colors${
         dimmed ? " opacity-70" : ""
       }`}
       style={{ borderColor: !dimmed && card.starred ? "#6F7C3C" : "#DCD9CD" }}
     >
       <div className="flex items-start justify-between gap-2.5">
         <div
-          className={`text-[15px] font-bold tracking-[-0.01em]${dimmed ? " text-muted" : ""}`}
+          className={`min-w-0 break-words text-[13px] font-bold tracking-[-0.01em]${dimmed ? " text-muted" : ""}`}
         >
           {card.full_name}
         </div>
@@ -284,7 +284,7 @@ function CardBody({
             onStar(card.id, !card.starred);
           }}
           aria-label={card.starred ? "Unstar" : "Star"}
-          className="-m-1.5 p-1.5 text-[30px] leading-none cursor-pointer"
+          className="-m-1.5 p-1.5 text-[22px] leading-none cursor-pointer"
           style={{ color: card.starred ? "#6F7C3C" : "#B9B6A9" }}
         >
           {card.starred ? "★" : "☆"}
@@ -294,7 +294,7 @@ function CardBody({
         {card.year}
       </div>
       <div
-        className={`mt-3 text-[10px] font-bold tracking-[0.12em] uppercase ${
+        className={`mt-2 text-[10px] font-bold tracking-[0.08em] uppercase ${
           dimmed ? "text-muted" : "text-olive-light"
         }`}
       >

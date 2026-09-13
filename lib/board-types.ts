@@ -60,6 +60,7 @@ export const STAGES: { key: ApplicationStage; label: string }[] = [
   { key: "new", label: "New" },
   { key: "reviewing", label: "Reviewing" },
   { key: "interview", label: "Interview" },
+  { key: "deciding", label: "Deciding" },
   { key: "offer", label: "Offer" },
   { key: "archived", label: "Archived" },
 ];

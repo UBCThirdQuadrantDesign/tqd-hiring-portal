@@ -94,6 +94,7 @@ export const applicationStages = [
   "new",
   "reviewing",
   "interview",
+  "deciding",
   "offer",
   "archived",
 ] as const;

@@ -27,7 +27,7 @@ import { useBoardStore, type BoardCard } from "./board-store";
 
 export function Board() {
   const router = useRouter();
-  const { cards, starCard, moveCard } = useBoardStore();
+  const { cards, starCard, markInterviewSent, moveCard } = useBoardStore();
   const [starredOnly, setStarredOnly] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -146,6 +146,7 @@ export function Board() {
               archived={col.key === "archived"}
               onOpen={(id) => router.push(`/review/a/${id}`)}
               onStar={starCard}
+              onInterviewSent={markInterviewSent}
               onPrefetch={prefetchCard}
             />
           ))}
@@ -165,6 +166,7 @@ function Column({
   archived = false,
   onOpen,
   onStar,
+  onInterviewSent,
   onPrefetch,
 }: {
   stageKey: ApplicationStage;
@@ -173,6 +175,7 @@ function Column({
   archived?: boolean;
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
+  onInterviewSent: (id: string, next: boolean) => void;
   onPrefetch: (id: string) => void;
 }) {
   const { setNodeRef } = useDroppable({ id: stageKey });
@@ -200,6 +203,7 @@ function Column({
               dimmed={archived}
               onOpen={onOpen}
               onStar={onStar}
+              onInterviewSent={onInterviewSent}
               onPrefetch={onPrefetch}
             />
           ))}
@@ -217,12 +221,14 @@ function SortableCard({
   dimmed = false,
   onOpen,
   onStar,
+  onInterviewSent,
   onPrefetch,
 }: {
   card: BoardCard;
   dimmed?: boolean;
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
+  onInterviewSent: (id: string, next: boolean) => void;
   onPrefetch: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -237,7 +243,14 @@ function SortableCard({
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <CardBody card={card} dimmed={dimmed} onOpen={onOpen} onStar={onStar} onPrefetch={onPrefetch} />
+      <CardBody
+        card={card}
+        dimmed={dimmed}
+        onOpen={onOpen}
+        onStar={onStar}
+        onInterviewSent={onInterviewSent}
+        onPrefetch={onPrefetch}
+      />
     </div>
   );
 }
@@ -245,7 +258,7 @@ function SortableCard({
 function CardPreview({ card }: { card: BoardCard }) {
   return (
     <div className="rotate-1">
-      <CardBody card={card} onOpen={() => {}} onStar={() => {}} />
+      <CardBody card={card} onOpen={() => {}} onStar={() => {}} onInterviewSent={() => {}} />
     </div>
   );
 }
@@ -255,22 +268,28 @@ const ROLE_COLORS: Record<string, { accent: string; tint: string }> = {
   Architecture: { accent: "#6F7C3C", tint: "#EEF2DF" },
   Engineering: { accent: "#B3261E", tint: "#FBE6E4" },
   Discovery: { accent: "#2F5DA8", tint: "#E3ECF9" },
+  "Team Lead": { accent: "#6B3FA0", tint: "#EFE7F8" },
+  "Marketing/Outreach": { accent: "#B0306F", tint: "#FBE4EF" },
 };
-// Team Lead and Marketing/Outreach keep the original olive.
+// Fallback for any role added later without a colour.
 const DEFAULT_ROLE_COLOR = ROLE_COLORS.Architecture;
 const STAR_COLOR = "#E0A800";
+const INTERVIEW_SENT_COLOR = "#2E7D32";
+const INACTIVE_ICON_COLOR = "#B9B6A9";
 
 function CardBody({
   card,
   dimmed = false,
   onOpen,
   onStar,
+  onInterviewSent,
   onPrefetch,
 }: {
   card: BoardCard;
   dimmed?: boolean;
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
+  onInterviewSent: (id: string, next: boolean) => void;
   onPrefetch?: (id: string) => void;
 }) {
   const { accent: roleColor, tint } = ROLE_COLORS[card.subteam] ?? DEFAULT_ROLE_COLOR;
@@ -299,7 +318,7 @@ function CardBody({
           }}
           aria-label={card.starred ? "Unstar" : "Star"}
           className="-m-1.5 p-1.5 text-[22px] leading-none cursor-pointer"
-          style={{ color: card.starred ? STAR_COLOR : "#B9B6A9" }}
+          style={{ color: card.starred ? STAR_COLOR : INACTIVE_ICON_COLOR }}
         >
           {card.starred ? "★" : "☆"}
         </button>
@@ -307,14 +326,54 @@ function CardBody({
       <div className={`mt-1.5 text-xs ${dimmed ? "text-faint" : "text-[#6b6a62]"}`}>
         {card.year}
       </div>
-      <div
-        className={`mt-2 text-[10px] font-bold tracking-[0.08em] uppercase${
-          dimmed ? " text-muted" : ""
-        }`}
-        style={dimmed ? undefined : { color: roleColor }}
-      >
-        {card.subteam}
+      <div className="mt-2 flex items-end justify-between gap-2.5">
+        <div
+          className={`min-w-0 break-words text-[10px] font-bold tracking-[0.08em] uppercase${
+            dimmed ? " text-muted" : ""
+          }`}
+          style={dimmed ? undefined : { color: roleColor }}
+        >
+          {card.subteam}
+        </div>
+        {card.stage === "interview" && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onInterviewSent(card.id, !card.interview_sent);
+            }}
+            aria-label={card.interview_sent ? "Mark interview not sent" : "Mark interview sent"}
+            title={card.interview_sent ? "Interview sent" : "Interview not sent"}
+            className="-m-1.5 p-1.5 cursor-pointer shrink-0"
+            style={{ color: card.interview_sent ? INTERVIEW_SENT_COLOR : INACTIVE_ICON_COLOR }}
+          >
+            <EnvelopeIcon sent={card.interview_sent} />
+          </button>
+        )}
       </div>
     </div>
+  );
+}
+
+function EnvelopeIcon({ sent }: { sent: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="block">
+      <rect
+        x="2.5"
+        y="5"
+        width="19"
+        height="14"
+        rx="1.5"
+        fill={sent ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M3 6l9 7 9-7"
+        fill="none"
+        stroke={sent ? "#fff" : "currentColor"}
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

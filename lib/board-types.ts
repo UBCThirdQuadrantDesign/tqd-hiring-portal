@@ -18,6 +18,7 @@ export type ApplicationRow = {
   };
   stage: ApplicationStage;
   starred: boolean;
+  interview_sent: boolean;
   position: number;
   created_at: string;
   updated_at: string;

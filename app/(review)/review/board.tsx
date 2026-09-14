@@ -11,8 +11,14 @@ import {
   useSensors,
   useDroppable,
   closestCenter,
+  pointerWithin,
+  rectIntersection,
+  type Active,
+  type CollisionDetection,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
+  type Over,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -22,70 +28,119 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { STAGES } from "@/lib/board-types";
+import { buildColumns, findColumn, moveInColumns, planDrop, type Columns } from "@/lib/board-order";
 import type { ApplicationStage } from "@/lib/schema";
 import { useBoardStore, type BoardCard } from "./board-store";
+
+const isStageKey = (id: string) => STAGES.some((s) => s.key === id);
+
+/** Whether the dragged card's center is below the hovered card's center. */
+function isBelow(active: Active, over: Over) {
+  const rect = active.rect.current.translated;
+  return !!rect && rect.top + rect.height / 2 > over.rect.top + over.rect.height / 2;
+}
 
 export function Board() {
   const router = useRouter();
   const { cards, starCard, markInterviewSent, moveCard } = useBoardStore();
   const [starredOnly, setStarredOnly] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  // While dragging, the board renders this layout instead of `cards`, so the
+  // preview — including a gap opening in another column — is exactly where
+  // the card will be written on drop.
+  const [dragColumns, setDragColumns] = useState<Columns | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const filtered = starredOnly ? cards.filter((c) => c.starred) : cards;
-
-  const columns = useMemo(
-    () =>
-      STAGES.map((s) => ({
-        ...s,
-        items: filtered
-          .filter((c) => c.stage === s.key)
-          .sort((a, b) => a.position - b.position),
-      })),
-    [filtered]
+  const filtered = useMemo(
+    () => (starredOnly ? cards.filter((c) => c.starred) : cards),
+    [cards, starredOnly]
   );
+  const baseColumns = useMemo(() => buildColumns(filtered, STAGES), [filtered]);
+  const layout = dragColumns ?? baseColumns;
+
+  const columns = useMemo(() => {
+    const byId = new Map(filtered.map((c) => [c.id, c]));
+    return STAGES.map((s) => ({
+      ...s,
+      // Cards deleted mid-drag (realtime) drop out here.
+      items: layout[s.key].flatMap((id) => byId.get(id) ?? []),
+    }));
+  }, [filtered, layout]);
 
   const activeCard = cards.find((c) => c.id === activeId) ?? null;
 
+  /**
+   * Prefer the card under the pointer. A column only wins when the pointer is
+   * over no card; if that column has cards, snap to the nearest one so a drop
+   * in the gaps between cards doesn't fall through to "end of column".
+   */
+  const collisionDetection = useCallback<CollisionDetection>(
+    (args) => {
+      const pointerHits = pointerWithin(args);
+      const hits = pointerHits.length > 0 ? pointerHits : rectIntersection(args);
+      const cardHit = hits.find((h) => !isStageKey(String(h.id)));
+      if (cardHit) return [cardHit];
+
+      const columnHit = hits[0];
+      if (!columnHit) return [];
+      const items = layout[columnHit.id as ApplicationStage] ?? [];
+      if (items.length === 0) return [columnHit];
+      const nearest = closestCenter({
+        ...args,
+        droppableContainers: args.droppableContainers.filter((c) => items.includes(String(c.id))),
+      });
+      return nearest.length > 0 ? nearest : [columnHit];
+    },
+    [layout]
+  );
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(String(event.active.id));
+    setDragColumns(baseColumns);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // Moving into another column updates the layout live; reordering within a
+  // column is previewed by the sortable strategy and applied on drop.
+  const handleDragOver = ({ active, over }: DragOverEvent) => {
+    if (!over || !dragColumns) return;
+    const id = String(active.id);
+    const overId = String(over.id);
+    if (findColumn(dragColumns, id) === findColumn(dragColumns, overId)) return;
+    setDragColumns(moveInColumns(dragColumns, id, overId, isBelow(active, over)));
+  };
+
+  const handleDragCancel = () => {
     setActiveId(null);
-    const { active, over } = event;
-    if (!over) return;
+    setDragColumns(null);
+  };
 
-    const activeCardData = cards.find((c) => c.id === active.id);
-    if (!activeCardData) return;
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    const dragged = dragColumns;
+    handleDragCancel();
+    if (!dragged || !over) return;
 
-    // `over.id` is either a card id (drop onto a card) or a column key
-    // (drop onto an empty/near-empty column).
-    const overCard = cards.find((c) => c.id === over.id);
-    const targetStage = overCard ? overCard.stage : (over.id as ApplicationStage);
-    if (!STAGES.some((s) => s.key === targetStage)) return;
+    const id = String(active.id);
+    const original = cards.find((c) => c.id === id);
+    if (!original) return;
 
-    const columnItems = cards
-      .filter((c) => c.stage === targetStage && c.id !== active.id)
-      .sort((a, b) => a.position - b.position);
+    const final = moveInColumns(dragged, id, String(over.id), isBelow(active, over));
+    const stage = findColumn(final, id);
+    if (!stage) return;
 
-    const overIndex = overCard ? columnItems.findIndex((c) => c.id === overCard.id) : columnItems.length;
-    const before = columnItems[overIndex - 1];
-    const after = columnItems[overIndex];
-    const newPosition =
-      before && after
-        ? (before.position + after.position) / 2
-        : before
-        ? before.position + 1
-        : after
-        ? after.position - 1
-        : 1;
+    const unchanged =
+      stage === original.stage && final[stage].join() === baseColumns[stage].join();
+    if (unchanged) return;
 
-    moveCard(String(active.id), targetStage, newPosition);
+    const updates = planDrop(
+      cards.filter((c) => c.stage === stage),
+      final[stage],
+      id
+    );
+    for (const u of updates) moveCard(u.id, stage, u.position);
   };
 
   // Warm the intercepted /review/a/[id] payload while the pointer is still
@@ -129,12 +184,14 @@ export function Board() {
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <div
-          className="grid gap-3 mt-7 items-start"
+          className="grid gap-3 mt-7"
           style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
         >
           {columns.map((col) => (
@@ -181,7 +238,10 @@ function Column({
   const { setNodeRef } = useDroppable({ id: stageKey });
 
   return (
+    // The whole column is the drop target, not just the card list, so the
+    // empty space below the last card still counts as this column.
     <div
+      ref={setNodeRef}
       className={`border min-h-[420px] ${
         archived ? "bg-board-archived border-rule" : "bg-board border-rule-soft"
       }`}
@@ -194,7 +254,7 @@ function Column({
         <div className="text-[11px] font-bold tracking-[0.12em] uppercase">{label}</div>
         <div className="text-[11px] font-bold text-muted">{items.length}</div>
       </div>
-      <div ref={setNodeRef} className="grid gap-2 p-2 min-h-[80px]">
+      <div className="grid gap-2 p-2 min-h-[80px]">
         <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
           {items.map((item) => (
             <SortableCard

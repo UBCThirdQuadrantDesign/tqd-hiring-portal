@@ -3,7 +3,7 @@ import { studio } from "@/content/studio";
 import { WorkImage } from "@/components/work-image";
 import { CaptainPolaroid } from "@/components/captain-polaroid";
 import { ScrollReveal } from "@/lib/motion/scroll-reveal";
-import { ApplySection } from "./apply-section";
+import { ApplySection } from "../apply-section";
 
 /** Tasteful misalignment for the captain polaroids — tilt and vertical drift. */
 const CAPTAIN_ROTATIONS = [-3, 0, 3];

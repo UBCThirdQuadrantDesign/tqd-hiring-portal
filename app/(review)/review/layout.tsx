@@ -13,7 +13,7 @@ export default async function ReviewBoardLayout({
   const supabase = await createClient();
   const { data: applications } = await supabase
     .from("applications")
-    .select("id, full_name, year, subteam, stage, starred, interview_sent, position")
+    .select("id, full_name, year, subteam, stage, starred, interview_sent, offer_sent, position")
     .order("position", { ascending: true });
 
   return (

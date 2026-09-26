@@ -13,7 +13,7 @@ import {
   type StagedCard,
 } from "./board-order";
 
-function card(id: string, position: number, stage: ApplicationStage = "new"): StagedCard {
+function card(id: string, position: number, stage: ApplicationStage = "reviewing"): StagedCard {
   return { id, position, stage };
 }
 
@@ -63,7 +63,7 @@ function drop(
   return { layout, stage, updates, next, order: orderOf(next, stage, visible) };
 }
 
-// Five cards in "new" with gappy, unsorted input positions.
+// Five cards in "reviewing" with gappy, unsorted input positions.
 const column = [card("e", 50), card("a", 10), card("c", 30), card("b", 20), card("d", 40)];
 
 describe("compareCards", () => {
@@ -80,17 +80,17 @@ describe("compareCards", () => {
 });
 
 describe("moveInColumns — same column", () => {
-  const layout = columnsOf({ new: ["a", "b", "c", "d", "e"] });
+  const layout = columnsOf({ reviewing: ["a", "b", "c", "d", "e"] });
 
   it("dragging down onto a card lands right after it", () => {
-    expect(moveInColumns(layout, "a", "c", false).new).toEqual(["b", "c", "a", "d", "e"]);
-    expect(moveInColumns(layout, "b", "e", false).new).toEqual(["a", "c", "d", "e", "b"]);
-    expect(moveInColumns(layout, "a", "b", false).new).toEqual(["b", "a", "c", "d", "e"]);
+    expect(moveInColumns(layout, "a", "c", false).reviewing).toEqual(["b", "c", "a", "d", "e"]);
+    expect(moveInColumns(layout, "b", "e", false).reviewing).toEqual(["a", "c", "d", "e", "b"]);
+    expect(moveInColumns(layout, "a", "b", false).reviewing).toEqual(["b", "a", "c", "d", "e"]);
   });
 
   it("dragging up onto a card lands right before it", () => {
-    expect(moveInColumns(layout, "e", "b", false).new).toEqual(["a", "e", "b", "c", "d"]);
-    expect(moveInColumns(layout, "d", "a", false).new).toEqual(["d", "a", "b", "c", "e"]);
+    expect(moveInColumns(layout, "e", "b", false).reviewing).toEqual(["a", "e", "b", "c", "d"]);
+    expect(moveInColumns(layout, "d", "a", false).reviewing).toEqual(["d", "a", "b", "c", "e"]);
   });
 
   it("dropping on itself is a no-op", () => {
@@ -98,30 +98,30 @@ describe("moveInColumns — same column", () => {
   });
 
   it("placeBelow does not affect same-column moves", () => {
-    expect(moveInColumns(layout, "a", "c", true).new).toEqual(["b", "c", "a", "d", "e"]);
+    expect(moveInColumns(layout, "a", "c", true).reviewing).toEqual(["b", "c", "a", "d", "e"]);
   });
 
   it("dropping on its own column moves it to the end", () => {
-    expect(moveInColumns(layout, "b", "new", false).new).toEqual(["a", "c", "d", "e", "b"]);
+    expect(moveInColumns(layout, "b", "reviewing", false).reviewing).toEqual(["a", "c", "d", "e", "b"]);
   });
 });
 
 describe("moveInColumns — across columns", () => {
-  const layout = columnsOf({ new: ["a", "b"], reviewing: ["x", "y", "z"] });
+  const layout = columnsOf({ reviewing: ["a", "b"], interview: ["x", "y", "z"] });
 
   it("upper half of a card inserts before it", () => {
     const next = moveInColumns(layout, "a", "y", false);
-    expect(next.new).toEqual(["b"]);
-    expect(next.reviewing).toEqual(["x", "a", "y", "z"]);
+    expect(next.reviewing).toEqual(["b"]);
+    expect(next.interview).toEqual(["x", "a", "y", "z"]);
   });
 
   it("lower half of a card inserts after it", () => {
-    expect(moveInColumns(layout, "a", "y", true).reviewing).toEqual(["x", "y", "a", "z"]);
-    expect(moveInColumns(layout, "a", "z", true).reviewing).toEqual(["x", "y", "z", "a"]);
+    expect(moveInColumns(layout, "a", "y", true).interview).toEqual(["x", "y", "a", "z"]);
+    expect(moveInColumns(layout, "a", "z", true).interview).toEqual(["x", "y", "z", "a"]);
   });
 
   it("dropping on a column appends", () => {
-    expect(moveInColumns(layout, "a", "reviewing", false).reviewing).toEqual(["x", "y", "z", "a"]);
+    expect(moveInColumns(layout, "a", "interview", false).interview).toEqual(["x", "y", "z", "a"]);
     expect(moveInColumns(layout, "a", "offer", false).offer).toEqual(["a"]);
   });
 
@@ -168,14 +168,14 @@ describe("drop pipeline", () => {
   });
 
   it("across columns, including an empty one", () => {
-    const cards = [...column, card("x", 1, "reviewing"), card("y", 2, "reviewing")];
+    const cards = [...column, card("x", 1, "interview"), card("y", 2, "interview")];
     expect(drop(cards, "c", "y", false).order).toEqual(["x", "c", "y"]);
     expect(drop(cards, "c", "y", true).order).toEqual(["x", "y", "c"]);
     expect(drop(cards, "c", "x", false).order).toEqual(["c", "x", "y"]);
     const toEmpty = drop(cards, "c", "offer");
     expect(toEmpty.stage).toBe("offer");
     expect(toEmpty.order).toEqual(["c"]);
-    expect(orderOf(toEmpty.next, "new")).toEqual(["a", "b", "d", "e"]);
+    expect(orderOf(toEmpty.next, "reviewing")).toEqual(["a", "b", "d", "e"]);
   });
 
   it("with a filter, the visible order matches the preview", () => {
@@ -192,7 +192,7 @@ describe("drop pipeline", () => {
     // Alternate which card goes between "a" and the one after it, forever halving the gap.
     for (let i = 0; i < 80; i++) {
       const mover = i % 2 === 0 ? "c" : "d";
-      const current = orderOf(cards, "new");
+      const current = orderOf(cards, "reviewing");
       const expected = ["a", mover, ...current.filter((id) => id !== "a" && id !== mover)];
       const { updates, next, order } = drop(cards, mover, current[1]);
       if (updates.length > 1) rebalanced = true;
@@ -235,7 +235,7 @@ describe("planDrop — randomized", () => {
         // Integer positions from a tiny range so ties and tight gaps are common.
         card(`c${i}`, Math.floor(random() * 4) + random() * (random() < 0.3 ? 1e-15 : 0))
       );
-      const incoming = random() < 0.5 ? null : card("moving", 99, "reviewing");
+      const incoming = random() < 0.5 ? null : card("moving", 99, "interview");
       const all = incoming ? [...stageCards, incoming] : stageCards;
       if (all.length === 0) continue;
       const activeId = incoming ? incoming.id : all[Math.floor(random() * all.length)].id;
@@ -243,20 +243,20 @@ describe("planDrop — randomized", () => {
       const visible = new Set(
         all.filter((c) => c.id === activeId || random() < 0.7).map((c) => c.id)
       );
-      const visibleOthers = orderOf(all, "new", visible).filter((id) => id !== activeId);
+      const visibleOthers = orderOf(all, "reviewing", visible).filter((id) => id !== activeId);
       const index = Math.floor(random() * (visibleOthers.length + 1));
       const target = [...visibleOthers.slice(0, index), activeId, ...visibleOthers.slice(index)];
 
-      const hiddenBefore = orderOf(all, "new").filter((id) => id !== activeId && !visible.has(id));
+      const hiddenBefore = orderOf(all, "reviewing").filter((id) => id !== activeId && !visible.has(id));
       const updates = planDrop(
-        all.filter((c) => c.stage === "new"),
+        all.filter((c) => c.stage === "reviewing"),
         target,
         activeId
       );
-      const next = apply(all, updates, activeId, "new");
+      const next = apply(all, updates, activeId, "reviewing");
 
-      expect(orderOf(next, "new", visible)).toEqual(target);
-      const fullNext = orderOf(next, "new").filter((id) => id !== activeId);
+      expect(orderOf(next, "reviewing", visible)).toEqual(target);
+      const fullNext = orderOf(next, "reviewing").filter((id) => id !== activeId);
       expect(fullNext.filter((id) => !visible.has(id))).toEqual(hiddenBefore);
     }
   });

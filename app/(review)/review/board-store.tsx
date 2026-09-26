@@ -16,6 +16,7 @@ import type { ApplicationStage } from "@/lib/schema";
 import {
   reorder as reorderAction,
   setInterviewSent as setInterviewSentAction,
+  setOfferSent as setOfferSentAction,
   setStage as setStageAction,
   toggleStar as toggleStarAction,
 } from "./actions";
@@ -28,11 +29,12 @@ export type BoardCard = {
   stage: ApplicationStage;
   starred: boolean;
   interview_sent: boolean;
+  offer_sent: boolean;
   position: number;
 };
 
 /** The board's projection of `applications` — kept in sync with toBoardCard(). */
-const BOARD_COLUMNS = "id, full_name, year, subteam, stage, starred, interview_sent, position";
+const BOARD_COLUMNS = "id, full_name, year, subteam, stage, starred, interview_sent, offer_sent, position";
 
 /**
  * Realtime hands us the whole row, `answers` and `search_vector` included.
@@ -48,6 +50,7 @@ function toBoardCard(row: Record<string, unknown>): BoardCard {
     stage: row.stage as ApplicationStage,
     starred: row.starred as boolean,
     interview_sent: row.interview_sent as boolean,
+    offer_sent: row.offer_sent as boolean,
     position: row.position as number,
   };
 }
@@ -62,6 +65,7 @@ type BoardStore = {
   getCard: (id: string) => BoardCard | undefined;
   starCard: (id: string, next: boolean) => void;
   markInterviewSent: (id: string, next: boolean) => void;
+  markOfferSent: (id: string, next: boolean) => void;
   moveCard: (id: string, stage: ApplicationStage, position: number) => void;
   setCardStage: (id: string, stage: ApplicationStage) => void;
 };
@@ -216,6 +220,13 @@ export function BoardStoreProvider({
     [mutate]
   );
 
+  const markOfferSent = useCallback(
+    (id: string, next: boolean) => {
+      mutate(id, { offer_sent: next }, () => setOfferSentAction(id, next));
+    },
+    [mutate]
+  );
+
   const moveCard = useCallback(
     (id: string, stage: ApplicationStage, position: number) => {
       mutate(id, { stage, position }, () => reorderAction(id, stage, position));
@@ -236,10 +247,11 @@ export function BoardStoreProvider({
       getCard: (id) => cards.find((c) => c.id === id),
       starCard,
       markInterviewSent,
+      markOfferSent,
       moveCard,
       setCardStage,
     }),
-    [cards, starCard, markInterviewSent, moveCard, setCardStage]
+    [cards, starCard, markInterviewSent, markOfferSent, moveCard, setCardStage]
   );
 
   return <BoardStoreContext.Provider value={value}>{children}</BoardStoreContext.Provider>;

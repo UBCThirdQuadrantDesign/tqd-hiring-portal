@@ -91,11 +91,11 @@ export const answerValuesSchema = applicationFormSchema.pick({
 export type AnswerValues = z.infer<typeof answerValuesSchema>;
 
 export const applicationStages = [
-  "new",
   "reviewing",
   "interview",
   "deciding",
   "offer",
+  "team",
   "archived",
 ] as const;
 

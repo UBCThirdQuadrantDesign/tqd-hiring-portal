@@ -19,6 +19,7 @@ export type ApplicationRow = {
   stage: ApplicationStage;
   starred: boolean;
   interview_sent: boolean;
+  offer_sent: boolean;
   position: number;
   created_at: string;
   updated_at: string;
@@ -58,10 +59,10 @@ export type ReviewerNote = {
 };
 
 export const STAGES: { key: ApplicationStage; label: string }[] = [
-  { key: "new", label: "New" },
   { key: "reviewing", label: "Reviewing" },
   { key: "interview", label: "Interview" },
   { key: "deciding", label: "Deciding" },
   { key: "offer", label: "Offer" },
+  { key: "team", label: "Team" },
   { key: "archived", label: "Archived" },
 ];

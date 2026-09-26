@@ -49,6 +49,15 @@ export async function setInterviewSent(applicationId: string, interview_sent: bo
   if (error) throw error;
 }
 
+export async function setOfferSent(applicationId: string, offer_sent: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("applications")
+    .update({ offer_sent })
+    .eq("id", applicationId);
+  if (error) throw error;
+}
+
 export async function addNote(applicationId: string, body: string) {
   const parsed = noteSchema.parse({ application_id: applicationId, body });
   const supabase = await createClient();

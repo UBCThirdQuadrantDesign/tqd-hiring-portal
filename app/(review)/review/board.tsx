@@ -42,7 +42,7 @@ function isBelow(active: Active, over: Over) {
 
 export function Board() {
   const router = useRouter();
-  const { cards, starCard, markInterviewSent, moveCard } = useBoardStore();
+  const { cards, starCard, markInterviewSent, markOfferSent, moveCard } = useBoardStore();
   const [starredOnly, setStarredOnly] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   // While dragging, the board renders this layout instead of `cards`, so the
@@ -204,6 +204,7 @@ export function Board() {
               onOpen={(id) => router.push(`/review/a/${id}`)}
               onStar={starCard}
               onInterviewSent={markInterviewSent}
+              onOfferSent={markOfferSent}
               onPrefetch={prefetchCard}
             />
           ))}
@@ -224,6 +225,7 @@ function Column({
   onOpen,
   onStar,
   onInterviewSent,
+  onOfferSent,
   onPrefetch,
 }: {
   stageKey: ApplicationStage;
@@ -233,6 +235,7 @@ function Column({
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
   onInterviewSent: (id: string, next: boolean) => void;
+  onOfferSent: (id: string, next: boolean) => void;
   onPrefetch: (id: string) => void;
 }) {
   const { setNodeRef } = useDroppable({ id: stageKey });
@@ -264,6 +267,7 @@ function Column({
               onOpen={onOpen}
               onStar={onStar}
               onInterviewSent={onInterviewSent}
+              onOfferSent={onOfferSent}
               onPrefetch={onPrefetch}
             />
           ))}
@@ -282,6 +286,7 @@ function SortableCard({
   onOpen,
   onStar,
   onInterviewSent,
+  onOfferSent,
   onPrefetch,
 }: {
   card: BoardCard;
@@ -289,6 +294,7 @@ function SortableCard({
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
   onInterviewSent: (id: string, next: boolean) => void;
+  onOfferSent: (id: string, next: boolean) => void;
   onPrefetch: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -309,6 +315,7 @@ function SortableCard({
         onOpen={onOpen}
         onStar={onStar}
         onInterviewSent={onInterviewSent}
+        onOfferSent={onOfferSent}
         onPrefetch={onPrefetch}
       />
     </div>
@@ -318,7 +325,7 @@ function SortableCard({
 function CardPreview({ card }: { card: BoardCard }) {
   return (
     <div className="rotate-1">
-      <CardBody card={card} onOpen={() => {}} onStar={() => {}} onInterviewSent={() => {}} />
+      <CardBody card={card} onOpen={() => {}} onStar={() => {}} onInterviewSent={() => {}} onOfferSent={() => {}} />
     </div>
   );
 }
@@ -334,7 +341,7 @@ const ROLE_COLORS: Record<string, { accent: string; tint: string }> = {
 // Fallback for any role added later without a colour.
 const DEFAULT_ROLE_COLOR = ROLE_COLORS.Architecture;
 const STAR_COLOR = "#E0A800";
-const INTERVIEW_SENT_COLOR = "#2E7D32";
+const SENT_COLOR = "#2E7D32";
 const INACTIVE_ICON_COLOR = "#B9B6A9";
 
 function CardBody({
@@ -343,6 +350,7 @@ function CardBody({
   onOpen,
   onStar,
   onInterviewSent,
+  onOfferSent,
   onPrefetch,
 }: {
   card: BoardCard;
@@ -350,6 +358,7 @@ function CardBody({
   onOpen: (id: string) => void;
   onStar: (id: string, next: boolean) => void;
   onInterviewSent: (id: string, next: boolean) => void;
+  onOfferSent: (id: string, next: boolean) => void;
   onPrefetch?: (id: string) => void;
 }) {
   const { accent: roleColor, tint } = ROLE_COLORS[card.subteam] ?? DEFAULT_ROLE_COLOR;
@@ -404,9 +413,23 @@ function CardBody({
             aria-label={card.interview_sent ? "Mark interview not sent" : "Mark interview sent"}
             title={card.interview_sent ? "Interview sent" : "Interview not sent"}
             className="-m-1.5 p-1.5 cursor-pointer shrink-0"
-            style={{ color: card.interview_sent ? INTERVIEW_SENT_COLOR : INACTIVE_ICON_COLOR }}
+            style={{ color: card.interview_sent ? SENT_COLOR : INACTIVE_ICON_COLOR }}
           >
             <EnvelopeIcon sent={card.interview_sent} />
+          </button>
+        )}
+        {card.stage === "offer" && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOfferSent(card.id, !card.offer_sent);
+            }}
+            aria-label={card.offer_sent ? "Mark offer not sent" : "Mark offer sent"}
+            title={card.offer_sent ? "Offer sent" : "Offer not sent"}
+            className="-m-1.5 p-1.5 cursor-pointer shrink-0"
+            style={{ color: card.offer_sent ? SENT_COLOR : INACTIVE_ICON_COLOR }}
+          >
+            <EnvelopeIcon sent={card.offer_sent} />
           </button>
         )}
       </div>

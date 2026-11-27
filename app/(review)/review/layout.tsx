@@ -14,6 +14,8 @@ export default async function ReviewBoardLayout({
   const { data: applications } = await supabase
     .from("applications")
     .select("id, full_name, year, subteam, stage, starred, interview_sent, offer_sent, position")
+    // Past rounds stay in the table for history but off the board (migration 0015).
+    .is("retired_at", null)
     .order("position", { ascending: true });
 
   return (

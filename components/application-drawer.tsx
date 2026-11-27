@@ -47,6 +47,7 @@ type ApplicationDetail = {
     skills?: string;
     hours_per_week: string;
     other_commitments: string;
+    additional_link?: string;
   };
 };
 
@@ -219,6 +220,8 @@ export function ApplicationDrawer({
   const resume = attachments.find((a) => a.kind === "resume");
   const portfolio = attachments.find((a) => a.kind === "portfolio");
 
+  const additionalLink = application.answers.additional_link?.trim();
+
   const files: { label: string; file?: Attachment; empty: string }[] = [
     { label: "Résumé", file: resume, empty: "No file — contact the applicant" },
     { label: "Portfolio", file: portfolio, empty: "None submitted — optional" },
@@ -344,6 +347,24 @@ export function ApplicationDrawer({
               </div>
             </div>
           ))}
+          <div className="grid grid-cols-[120px_1fr] gap-5 py-3.5 border-b border-rule-faint">
+            <div className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted">
+              Link
+            </div>
+            <div className="text-sm break-all">
+              {/* The form only stores http(s) links, but never hand an
+                  unchecked scheme (javascript:, data:) to an href. */}
+              {additionalLink && /^https?:\/\//i.test(additionalLink) ? (
+                <a href={additionalLink} target="_blank" rel="noreferrer">
+                  {additionalLink}
+                </a>
+              ) : additionalLink ? (
+                <span>{additionalLink}</span>
+              ) : (
+                <span className="italic text-muted">None submitted — optional</span>
+              )}
+            </div>
+          </div>
         </div>
 
         {answerSections.map(({ id, heading }) => {

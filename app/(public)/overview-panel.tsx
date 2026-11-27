@@ -5,7 +5,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ScrollReveal } from "@/lib/motion/scroll-reveal";
+
+type RoleGroup = {
+  title: string;
+  subheading?: string;
+  hours?: string;
+  bullets: readonly string[];
+};
 
 /** Job-description side of the apply section. Copy lives in content/application.ts. */
 export function OverviewPanel({ onApply }: { onApply: () => void }) {
@@ -38,16 +44,16 @@ export function OverviewPanel({ onApply }: { onApply: () => void }) {
 
           {section.groups.length > 0 && (
             <div className="grid gap-6 mt-5 max-w-[62ch] text-pretty">
-              {section.groups.map((group) => (
+              {(section.groups as readonly RoleGroup[]).map((group) => (
                 <div key={group.title}>
-                  {"subheading" in group && group.subheading && (
+                  {group.subheading && (
                     <div className="text-[16px] font-extrabold tracking-[0.18em] uppercase text-ink mt-2 mb-3">
                       {group.subheading}
                     </div>
                   )}
                   <div className="text-base font-bold leading-relaxed text-olive">
                     {group.title}
-                    {"hours" in group && group.hours && (
+                    {group.hours && (
                       <span className="ml-2 text-[12px] font-normal text-muted">
                         ({group.hours})
                       </span>
@@ -111,12 +117,7 @@ const faqItems = [
   },
   {
     value: "item-2",
-    trigger: "Are late submissions accepted?",
-    content: "Submissions close on Sept 16th at 11:59pm. Email ubcthirdquadrantdesign@gmail.com for late submissions!",
-  },
-  {
-    value: "item-3",
-    trigger: "Help! I don't know which team to pick :(",
-    content: "Apply for our Discovery team. You'll have the chance to play different roles and find your interest.",
+    trigger: "When do applications close?",
+    content: "Applications stay open until all roles are filled, so we encourage you to apply early! Email ubcthirdquadrantdesign@gmail.com with any questions.",
   },
 ];

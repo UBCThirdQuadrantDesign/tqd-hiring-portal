@@ -28,6 +28,16 @@ const OTHER_COMMITMENTS_WORDS = question("other_commitments").maxWords;
  */
 const charCap = (words: number) => words * 16;
 
+/** An absolute http(s) URL with a dotted host — rejects javascript:, "not a url", etc. */
+export function isWebUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "http:" || url.protocol === "https:") && url.hostname.includes(".");
+  } catch {
+    return false;
+  }
+}
+
 const wordLimited = (words: number, emptyMessage: string) =>
   z
     .string()
@@ -74,6 +84,15 @@ export const applicationFormSchema = z.object({
     .regex(UPLOAD_PATH_PATTERN, "Re-upload your portfolio.")
     .optional()
     .or(z.literal("")),
+  // Optional LinkedIn / website. Scheme-less input ("linkedin.com/in/x") is
+  // normalized to https://; only http(s) survives, since reviewers click it.
+  additional_link: z
+    .string()
+    .trim()
+    .max(500, "Please keep the link under 500 characters.")
+    .transform((v) => (v && !/^[a-z][a-z0-9+.-]*:/i.test(v) ? `https://${v}` : v))
+    .refine((v) => v === "" || isWebUrl(v), "Enter a valid link (e.g. linkedin.com/in/you).")
+    .optional(),
   // Honeypot — must stay empty. Real applicants never see or fill this field.
   company: z.string().max(0).optional().or(z.literal("")),
 });
@@ -86,6 +105,7 @@ export const answerValuesSchema = applicationFormSchema.pick({
   skills: true,
   hours_per_week: true,
   other_commitments: true,
+  additional_link: true,
 });
 
 export type AnswerValues = z.infer<typeof answerValuesSchema>;

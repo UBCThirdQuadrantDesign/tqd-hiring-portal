@@ -22,6 +22,7 @@ type DraftFields = {
   skills: string;
   hours_per_week: string;
   other_commitments: string;
+  additional_link: string;
 };
 
 const emptyDraft: DraftFields = {
@@ -34,6 +35,7 @@ const emptyDraft: DraftFields = {
   skills: "",
   hours_per_week: "",
   other_commitments: "",
+  additional_link: "",
 };
 
 function wordCount(value: string) {
@@ -135,6 +137,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
   const commitQ = question("other_commitments");
   const resumeQ = question("resume");
   const portfolioQ = question("portfolio");
+  const linkQ = question("additional_link");
   const whyWords = useMemo(() => wordCount(fields.why_join), [fields.why_join]);
   const skillsWords = useMemo(() => wordCount(fields.skills), [fields.skills]);
   const commitWords = useMemo(() => wordCount(fields.other_commitments), [fields.other_commitments]);
@@ -174,7 +177,7 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
   return (
     <form ref={formRef} id={formId} action={formAction} noValidate className="grid gap-11 w-full">
       {application.meta
-        .filter((m) => m.label === "Closes")
+        .filter((m) => m.label === "Deadline")
         .map((m) => (
           <div key={m.label}>
             <div className="text-[10px] font-bold tracking-[0.18em] uppercase text-muted">
@@ -419,6 +422,32 @@ export function ApplyForm({ onSubmitted }: { onSubmitted: (name: string) => void
             optional={!portfolioQ.required}
           />
         </div>
+        <label className="grid gap-2 content-start">
+          <span className={labelClass}>
+            {linkQ.label}
+            {!linkQ.required && (
+              <span className="ml-2 font-normal normal-case tracking-normal text-[13px] text-muted">
+                (Optional)
+              </span>
+            )}
+          </span>
+          <input
+            name="additional_link"
+            type="url"
+            inputMode="url"
+            autoComplete="url"
+            placeholder={linkQ.placeholder}
+            value={fields.additional_link}
+            onChange={field("additional_link")}
+            className={inputClass}
+            aria-describedby={state.fieldErrors?.additional_link ? `${formId}-additional_link-error` : undefined}
+          />
+          {state.fieldErrors?.additional_link && (
+            <span id={`${formId}-additional_link-error`} className="text-xs text-red-700">
+              {state.fieldErrors.additional_link}
+            </span>
+          )}
+        </label>
         <input type="hidden" name="resume_path" value={resume.state.path ?? ""} />
         <input type="hidden" name="portfolio_path" value={portfolio.state.path ?? ""} />
       </div>

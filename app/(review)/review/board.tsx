@@ -337,6 +337,9 @@ const ROLE_COLORS: Record<string, { accent: string; tint: string }> = {
   Discovery: { accent: "#2F5DA8", tint: "#E3ECF9" },
   "Team Lead": { accent: "#6B3FA0", tint: "#EFE7F8" },
   "Marketing/Outreach": { accent: "#B0306F", tint: "#FBE4EF" },
+  Journalism: { accent: "#2F5DA8", tint: "#E3ECF9" },
+  Outreach: { accent: "#B0306F", tint: "#FBE4EF" },
+  "Social Media": { accent: "#6B3FA0", tint: "#EFE7F8" },
 };
 // Fallback for any role added later without a colour.
 const DEFAULT_ROLE_COLOR = ROLE_COLORS.Architecture;

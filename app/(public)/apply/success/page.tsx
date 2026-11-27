@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { application } from "@/content/application";
 import { studio } from "@/content/studio";
 
 export default async function SuccessPage({
@@ -22,7 +21,7 @@ export default async function SuccessPage({
             Thanks{name ? `, ${name}` : ""}. Keep an eye on your inbox.
           </div>
           <Link
-            href="/hiring"
+            href="/"
             className="inline-block mt-10 px-6 py-[15px] border border-ink text-xs font-bold tracking-[0.16em] uppercase cursor-pointer hover:bg-ink hover:text-bone transition-colors no-underline"
           >
             Back to the overview

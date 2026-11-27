@@ -19,6 +19,7 @@ alter table applications add column if not exists retired_at timestamptz;
 create index if not exists applications_active_position_idx
   on applications (stage, position) where retired_at is null;
 
+-- ONE-SHOT: re-running this after new applications arrive hides them from the board.
 update applications set retired_at = now() where retired_at is null;
 
 notify pgrst, 'reload schema';

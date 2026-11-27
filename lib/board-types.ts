@@ -15,6 +15,8 @@ export type ApplicationRow = {
     skills?: string;
     hours_per_week: string;
     other_commitments: string;
+    // Added for the winter round; absent on earlier rows.
+    additional_link?: string;
   };
   stage: ApplicationStage;
   starred: boolean;

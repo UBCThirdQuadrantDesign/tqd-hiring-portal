@@ -2,7 +2,7 @@
  * The single source of truth for the 2026–27 general application.
  *
  * `questions` drives all four of:
- *   1. Form field rendering        — app/(public)/page.tsx
+ *   1. Form field rendering        — app/(public)/apply-form.tsx
  *   2. The Zod validation schema   — lib/schema.ts
  *   3. The `answers` jsonb shape   — lib/schema.ts (AnswerValues)
  *   4. Field labels in the reviewer drawer — app/(review)/review/**
@@ -14,11 +14,9 @@
  */
 
 export const SUBTEAMS = [
-  "Team Lead",
-  "Architecture",
-  "Engineering",
-  "Discovery",
-  "Marketing/Outreach",
+  "Journalism",
+  "Outreach",
+  "Social Media",
 ] as const;
 
 export const YEARS = [
@@ -55,7 +53,7 @@ export type QuestionField =
       column: true;
     }
   | {
-      id: "why_join" | "skills" | "other_commitments" | "hours_per_week";
+      id: "why_join" | "skills" | "other_commitments" | "hours_per_week" | "additional_link";
       type: "longtext" | "text";
       label: string;
       placeholder?: string;
@@ -76,56 +74,37 @@ export type QuestionField =
 export const application = {
   cycle: "2026-27",
   title: "Application",
-  closesAt: "2026-09-16T23:59:00-07:00",
-  closesLabel: "September 16",
   meta: [
     /*{label: "Commitment", value: "6–10 hrs / week"},*/
-    { label: "Closes", value: "Wednesday, September 16, 11:59 PM" },
+    { label: "Deadline", value: "Open until roles are filled" },
   ],
   subteams: SUBTEAMS,
  
   overview: [
     {
-      heading: "Roles",
+      heading: "Open Roles",
       paragraphs: [],
       bullets: [],
       // Each group renders as a role name with its responsibilities beneath it.
       groups: [
         {
-          title: "Team Lead",
-          hours: "6-10 hours a week",
+          title: "Journalism",
           bullets: [
-            "Set the direction for a subteam and keep the project on schedule.",
-            "Run weekly check-ins and guide members to completing deliverables.",
+            "Write articles, blog posts, newsletters and project updates for our website and channels",
+            "Advocate for TQD!!",
           ],
         },
         {
-          title: "Architecture",
-          subheading: "Sub-teams",
-          hours: "4-6 hours a week",
+          title: "Outreach",
           bullets: [
-            "Translate concepts into drawings, models and spatial plans using Adobe suite, Rhino, rendering and CAD softwares.",
+            "Find and contact architecture, engineering and construction firms, professionals, government bodies and UBC faculty",
           ],
         },
         {
-          title: "Engineering",
-          hours: "4-6 hours a week",
+          title: "Social Media",
           bullets: [
-            "We are looking for engineers interested in sustainable building design: civil, mechanical, energy, building science etc."
-          ],
-        },
-        {
-          title: "Marketing and Outreach",
-          hours: "5-6 hours a week",
-          bullets: [
-            "Project feasibility, social media and our main connection with the professional world.",
-          ],
-        },
-        {
-          title: "Discovery",
-          hours: "3-5 hours a week",
-          bullets: [
-            "Rotate across differrent teams as a mentee and find the best role for you. Choose your own path and pick up valuable skills that you are interested in.",
+            "Plan, create and post content for Instagram, LinkedIn and other platforms, including Reels and short-form video",
+            "Submit some of your previous work with your application (very casual)",
           ],
         },
       ],
@@ -136,8 +115,9 @@ export const application = {
       groups: [],
       bullets: [
         "Anybody! Regardless of what you're studying or what year you're in, if you think you're a good fit, we encourage you to apply.",
-        "Reliable, eager to take initiative and can come up with creative solutions.",
-        "Willing to learn. We'll pick up new skills together!",
+        "Interested in storytelling through journalism and marketing.",
+        "Passionate about heat-resilient, sustainable housing, uplifting our local community, and reimagining what the future of Vancouver could look like.",
+        "Eager to advocate for change and make an impact.",
         "Ready to have fun. We are a STUDENT design team. If you're not having fun, you're not doing it right!",
       ],
     },
@@ -145,7 +125,7 @@ export const application = {
       heading: "How we review",
       groups: [],
       paragraphs: [
-        "We read submissions on a rolling basis, and invite candidates to a short virtual meeting. Keep an eye on your inbox.",
+        "We read submissions on a rolling basis and invite candidates to a short virtual meeting. Keep an eye on your inbox.",
       ],
       bullets: [],
     },
@@ -195,7 +175,7 @@ export const application = {
     {
       id: "why_join",
       type: "longtext",
-      label: "What is your background, and Why would you like to join TQD?",
+      label: "What is your background, and why would you like to join TQD?",
       placeholder: "e.g. who you are, what you hope to gain, your favourite project of ours...",
       maxWords: 250,
       required: true,
@@ -245,12 +225,18 @@ export const application = {
       required: false,
       column: false,
     },
+    {
+      id: "additional_link",
+      type: "text",
+      label: "Link",
+      placeholder: "e.g. LinkedIn, portfolio website",
+      required: false,
+      column: false,
+    },
   ],
 } as const satisfies {
   cycle: string;
   title: string;
-  closesAt: string;
-  closesLabel: string;
   meta: readonly { label: string; value: string }[];
   subteams: readonly string[];
   overview: readonly {

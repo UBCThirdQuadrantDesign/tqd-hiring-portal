@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 .env.local
 .gstack/
+
+# hiring-round archives (applicant PII — never commit)
+/exports/

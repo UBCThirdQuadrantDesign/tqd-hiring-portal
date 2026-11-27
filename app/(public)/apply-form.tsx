@@ -7,7 +7,9 @@ import { application, question } from "@/content/application";
 import { useFileUpload } from "@/lib/use-file-upload";
 import { FileDropField } from "@/components/file-drop-field";
 
-const DRAFT_KEY = `tqd-application-draft-${application.cycle}`;
+// Suffix bumps per intake: the cycle label is reused for the winter round, and
+// a September draft left in localStorage shouldn't prefill the new form.
+const DRAFT_KEY = `tqd-application-draft-${application.cycle}-r2`;
 const initialState: SubmitState = { ok: false };
 
 type DraftFields = {

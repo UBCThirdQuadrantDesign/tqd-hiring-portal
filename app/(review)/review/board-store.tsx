@@ -112,6 +112,7 @@ export function BoardStoreProvider({
     const { data, error } = await supabase
       .from("applications")
       .select(BOARD_COLUMNS)
+      .is("retired_at", null)
       .order("position", { ascending: true });
     if (error || !data) return;
 
@@ -140,6 +141,11 @@ export function BoardStoreProvider({
         setCards((prev) => {
           if (payload.eventType === "DELETE") {
             const id = (payload.old as { id?: string }).id;
+            return id ? prev.filter((c) => c.id !== id) : prev;
+          }
+          // Retiring a round is an UPDATE that should read as a removal.
+          if ((payload.new as { retired_at?: string | null }).retired_at) {
+            const id = (payload.new as { id?: string }).id;
             return id ? prev.filter((c) => c.id !== id) : prev;
           }
           const row = toBoardCard(payload.new);
